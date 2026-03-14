@@ -1,0 +1,159 @@
+// Mitigation Rules Engine - Prisma Schema
+// Maps to HLD Section 6.4 Data Model
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Users ───────────────────────────────────────────────────────────────────
+
+model User {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email        String   @unique @db.VarChar(255)
+  passwordHash String   @map("password_hash") @db.VarChar(255)
+  role         String   @db.VarChar(50) // underwriter | applied_science | admin
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  // Relations
+  rulesCreated Rule[]
+  releases     Release[]
+  evaluations  Evaluation[]
+  policyLocks  PolicyLock[]
+  auditLogs    AuditLog[]
+
+  @@map("users")
+}
+
+// ─── Rules (draft workspace) ─────────────────────────────────────────────────
+
+model Rule {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name        String   @db.VarChar(255)
+  description String?  @db.Text
+  type        String   @db.VarChar(100) // simple_threshold | conditional_threshold | computed_with_modifiers
+  config      Json     @db.JsonB
+  mitigations Json     @db.JsonB
+  createdById String   @map("created_by") @db.Uuid
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  version     Int      @default(1)
+
+  // Relations
+  createdBy User @relation(fields: [createdById], references: [id])
+
+  @@map("rules")
+}
+
+// ─── Releases ────────────────────────────────────────────────────────────────
+
+model Release {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name        String   @unique @db.VarChar(255)
+  publishedAt DateTime @default(now()) @map("published_at")
+  publishedBy String   @map("published_by") @db.Uuid
+  isActive    Boolean  @default(false) @map("is_active")
+
+  // Relations
+  publisher    User              @relation(fields: [publishedBy], references: [id])
+  releaseRules ReleaseRule[]
+  evaluations  Evaluation[]
+  policyLocks  PolicyLock[]
+
+  @@map("releases")
+}
+
+// ─── Release Rules (immutable snapshots) ─────────────────────────────────────
+
+model ReleaseRule {
+  id           String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  releaseId    String @map("release_id") @db.Uuid
+  ruleId       String @map("rule_id") @db.VarChar(255) // Original draft rule ID for correlation
+  ruleSnapshot Json   @map("rule_snapshot") @db.JsonB
+
+  // Relations
+  release Release @relation(fields: [releaseId], references: [id])
+
+  @@map("release_rules")
+}
+
+// ─── Policy Locks ────────────────────────────────────────────────────────────
+
+model PolicyLock {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  propertyId String   @unique @map("property_id") @db.VarChar(255)
+  releaseId  String   @map("release_id") @db.Uuid
+  lockedAt   DateTime @default(now()) @map("locked_at")
+  lockedById String   @map("locked_by") @db.Uuid
+
+  // Relations
+  release  Release @relation(fields: [releaseId], references: [id])
+  lockedBy User    @relation(fields: [lockedById], references: [id])
+
+  @@map("policy_locks")
+}
+
+// ─── Evaluations ─────────────────────────────────────────────────────────────
+
+model Evaluation {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  propertyId      String   @map("property_id") @db.VarChar(255)
+  releaseId       String   @map("release_id") @db.Uuid
+  observations    Json     @db.JsonB
+  result          Json     @db.JsonB
+  isAutoDeclined  Boolean  @map("is_auto_declined")
+  createdById     String   @map("created_by") @db.Uuid
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  // Relations
+  release     Release                @relation(fields: [releaseId], references: [id])
+  createdBy   User                   @relation(fields: [createdById], references: [id])
+  mitigations EvaluationMitigation[]
+
+  @@map("evaluations")
+}
+
+// ─── Evaluation Mitigations ──────────────────────────────────────────────────
+
+model EvaluationMitigation {
+  evaluationId String @map("evaluation_id") @db.Uuid
+  ruleId       String @map("rule_id") @db.VarChar(255)
+  mitigationId String @map("mitigation_id") @db.VarChar(255)
+  category     String @db.VarChar(50) // full | bridge
+
+  // Relations
+  evaluation Evaluation @relation(fields: [evaluationId], references: [id])
+
+  @@id([evaluationId, ruleId, mitigationId])
+  @@map("evaluation_mitigations")
+}
+
+// ─── Settings ────────────────────────────────────────────────────────────────
+
+model Setting {
+  key   String @id @db.VarChar(255)
+  value Json   @db.JsonB
+
+  @@map("settings")
+}
+
+// ─── Audit Log ───────────────────────────────────────────────────────────────
+
+model AuditLog {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  action     String   @db.VarChar(255)
+  entityType String   @map("entity_type") @db.VarChar(100)
+  entityId   String?  @map("entity_id") @db.VarChar(255)
+  userId     String   @map("user_id") @db.Uuid
+  details    Json?    @db.JsonB
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("audit_log")
+}

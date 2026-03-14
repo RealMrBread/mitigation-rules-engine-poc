@@ -9,7 +9,9 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@mre/shared": "*"
+    "@mre/shared": "*",
+    "@prisma/client": "^5.22.0",
+    "prisma": "^5.22.0"
   },
   "devDependencies": {
     "typescript": "^5.4.0",
