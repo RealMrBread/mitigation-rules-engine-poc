@@ -1,0 +1,30 @@
+node_modules/
+dist/
+.env
+.env.*
+!.env.example
+
+# Compiled JS in source directories
+shared/src/**/*.js
+server/src/**/*.js
+client/src/**/*.js
+shared/types/**/*.js
+shared/schemas/**/*.js
+shared/data/**/*.js
+
+# Build artifacts
+*.tsbuildinfo
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
