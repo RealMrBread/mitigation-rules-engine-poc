@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rule Reference - Mitigation Rules Engine</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        brand: { 50: '#eff6ff', 100: '#dbeafe', 200: '#bfdbfe', 500: '#3b82f6', 600: '#2563eb', 700: '#1d4ed8', 800: '#1e40af', 900: '#1e3a5f' }
+      }
+    }
+  }
+}
+</script>
+<style>
+  body { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+  .sidebar-link { transition: background-color 0.15s, color 0.15s; }
+  .sidebar-link:hover { background-color: rgba(255,255,255,0.1); }
+  .sidebar-link.active { background-color: rgba(255,255,255,0.15); border-left: 3px solid #60a5fa; }
+  .rule-card { transition: box-shadow 0.2s; }
+  .rule-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+  .rule-detail { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; }
+  .rule-detail.open { max-height: 600px; }
+</style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+<div class="flex min-h-screen">
+
+  <!-- Sidebar -->
+  <aside class="w-64 bg-brand-900 text-white flex flex-col flex-shrink-0">
+    <div class="p-5 border-b border-white/10">
+      <h1 class="text-lg font-bold tracking-tight">Mitigation Rules</h1>
+      <p class="text-xs text-blue-200 mt-0.5">Wildfire Underwriting Engine</p>
+    </div>
+    <nav class="flex-1 py-4 px-3 space-y-1">
+      <a href="evaluation-form.html" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-md text-sm text-blue-100">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        New Evaluation
+      </a>
+      <a href="evaluation-results.html" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-md text-sm text-blue-100">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        Results
+      </a>
+      <a href="rule-reference.html" class="sidebar-link active flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+        Rule Reference
+      </a>
+    </nav>
+    <div class="p-4 border-t border-white/10">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-sm font-medium">JD</div>
+        <div>
+          <p class="text-sm font-medium">Jane Doe</p>
+          <p class="text-xs text-blue-200">Underwriter</p>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="flex-1 overflow-auto">
+    <header class="bg-white border-b border-gray-200 px-8 py-4 flex items-center justify-between">
+      <div>
+        <h2 class="text-xl font-semibold text-gray-900">Rule Reference</h2>
+        <p class="text-sm text-gray-500 mt-0.5">Browse all rules from the active release (read-only)</p>
+      </div>
+      <div class="flex items-center gap-3">
+        <span class="text-xs text-gray-400">Active Release:</span>
+        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-200">2026-Q1-v2.0 (Active)</span>
+      </div>
+    </header>
+
+    <div class="max-w-4xl mx-auto px-8 py-8">
+
+      <!-- Search/Filter -->
+      <div class="flex gap-3 mb-6">
+        <div class="flex-1 relative">
+          <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+          <input type="text" id="searchInput" oninput="filterRules()" placeholder="Search rules by name or description..." class="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500">
+        </div>
+        <select id="typeFilter" onchange="filterRules()" class="rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+          <option value="">All Types</option>
+          <option value="simple">Simple Threshold</option>
+          <option value="conditional">Conditional Threshold</option>
+          <option value="computed">Computed with Modifiers</option>
+        </select>
+      </div>
+
+      <!-- Rule count -->
+      <p class="text-sm text-gray-500 mb-4" id="ruleCount">4 rules in this release</p>
+
+      <!-- Rule Cards -->
+      <div class="space-y-3" id="ruleList">
+
+        <!-- Rule 1: Attic Vent -->
+        <div class="rule-card bg-white rounded-lg border border-gray-200 shadow-sm" data-type="simple" data-name="attic vent screens" data-desc="all vents must withstand embers">
+          <button onclick="toggleRule('rule1')" class="w-full px-5 py-4 flex items-center justify-between text-left">
+            <div class="flex items-center gap-3">
+              <h3 class="font-semibold text-gray-900">Attic Vent Screens</h3>
+              <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200">Simple Threshold</span>
+            </div>
+            <svg id="rule1-chevron" class="w-5 h-5 text-gray-400 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          </button>
+          <div id="rule1-detail" class="rule-detail border-t border-gray-100">
+            <div class="px-5 py-4">
+              <p class="text-sm text-gray-600 mb-4">All attic vents must be screened with ember-resistant mesh to prevent ember intrusion during a wildfire event. Standard screens are insufficient; 1/8" ember-resistant mesh is required.</p>
+              <div class="mb-4 p-3 bg-gray-50 rounded-md">
+                <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Rule Logic</p>
+                <p class="text-sm font-mono text-gray-700">attic_vent_screens = "Ember Resistant"</p>
+              </div>
+              <div>
+                <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Available Mitigations</p>
+                <div class="space-y-2">
+                  <div class="flex items-start gap-2 p-2.5 bg-green-50 rounded-md border border-green-100">
+                    <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">Full</span>
+                    <div>
+                      <p class="text-sm font-medium text-gray-900">Install Ember-Rated Vents</p>
+                      <p class="text-xs text-gray-500">Replace all vents with 1/8" ember-resistant mesh screens</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Rule 2: Roof Type -->
+        <div class="rule-card bg-white rounded-lg border border-gray-200 shadow-sm" data-type="conditional" data-name="roof type" data-desc="roof fire resistance based on risk category">
+          <button onclick="toggleRule('rule2')" class="w-full px-5 py-4 flex items-center justify-between text-left">
+            <div class="flex items-center gap-3">
+              <h3 class="font-semibold text-gray-900">Roof Type</h3>
+              <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-50 text-purple-700 border border-purple-200">Conditional Threshold</span>
+            </div>
+            <svg id="rule2-chevron" class="w-5 h-5 text-gray-400 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          </button>
+          <div id="rule2-detail" class="rule-detail border-t border-gray-100">
+            <div class="px-5 py-4">
+              <p class="text-sm text-gray-600 mb-4">Roof must meet fire resistance standards. Class A is required by default. However, if the property is in Wildfire Risk Category A (low risk), Class B is also acceptable.</p>
+              <div class="mb-4 p-3 bg-gray-50 rounded-md">
+                <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Rule Logic</p>
+                <div class="text-sm font-mono text-gray-700 space-y-1">
+                  <p><span class="text-purple-600">WHEN</span> wildfire_risk_category = "A":</p>
+                  <p class="pl-4">roof_type <span class="text-purple-600">IN</span> ["Class A", "Class B"]</p>
+                  <p><span class="text-purple-600">DEFAULT</span>:</p>
+                  <p class="pl-4">roof_type = "Class A"</p>
+                </div>
+              </div>
+              <div>
+                <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Available Mitigations</p>
+                <div class="space-y-2">
+                  <div class="flex items-start gap-2 p-2.5 bg-green-50 rounded-md border border-green-100">
+                    <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">Full</span>
+                    <div>
+                      <p class="text-sm font-medium text-gray-900">Replace Roof with Class A Material</p>
+                      <p class="text-xs text-gray-500">Install a Class A fire-resistant roof (concrete tile, metal, slate)</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Rule 3: Window Safety Distance -->
+        <div class="rule-card bg-white rounded-lg border border-gray-200 shadow-sm" data-type="computed" data-name="window safety distance" data-desc="windows safe distance from vegetation glass type">
+          <button onclick="toggleRule('rule3')" class="w-full px-5 py-4 flex items-center justify-between text-left">
+            <div class="flex items-center gap-3">
+              <h3 class="font-semibold text-gray-900">Window Safety Distance</h3>
+              <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200">Computed with Modifiers</span>
+            </div>
+            <svg id="rule3-chevron" class="w-5 h-5 text-gray-400 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          </button>
+          <div id="rule3-detail" class="rule-detail border-t border-gray-100">
+            <div class="px-5 py-4">
+              <p class="text-sm text-gray-600 mb-4">Windows must be a safe distance from surrounding vegetation. The required safe distance is computed from a base value modified by window type and vegetation type. Each vegetation item is evaluated independently.</p>
+              <div class="mb-4 p-3 bg-gray-50 rounded-md">
+                <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Rule Logic</p>
+                <div class="text-sm font-mono text-gray-700 space-y-1">
+                  <p>base = 30 ft</p>
+                  <p>required = base x window_modifier x veg_modifier</p>
+                  <p class="mt-2 text-xs text-gray-500">Window: Single Pane=x3, Double Pane=x2, Tempered=x1</p>
+                  <p class="text-xs text-gray-500">Vegetation: Tree=x1, Shrub=/2, Grass=/3</p>
+                  <p class="mt-1">FAIL if vegetation[].distance &lt; required</p>
+                </div>
+              </div>
+              <div>
+                <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Available Mitigations</p>
+                <div class="space-y-2">
+                  <div class="flex items-start gap-2 p-2.5 bg-green-50 rounded-md border border-green-100">
+                    <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">Full</span>
+                    <div>
+                      <p class="text-sm font-medium text-gray-900">Replace with Tempered Glass</p>
+                      <p class="text-xs text-gray-500">Upgrade all windows to tempered glass (modifier becomes x1)</p>
+                    </div>
+                  </div>
+                  <div class="flex items-start gap-2 p-2.5 bg-amber-50 rounded-md border border-amber-100">
+                    <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-700">Bridge</span>
+                    <div>
+                      <p class="text-sm font-medium text-gray-900">Apply Protective Film <span class="text-xs text-gray-400 font-normal">(modifier: x0.8)</span></p>
+                      <p class="text-xs text-gray-500">Apply protective window film to reduce heat transmission. Reduces required distance by 20%.</p>
+                    </div>
+                  </div>
+                  <div class="flex items-start gap-2 p-2.5 bg-amber-50 rounded-md border border-amber-100">
+                    <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-700">Bridge</span>
+                    <div>
+                      <p class="text-sm font-medium text-gray-900">Prune Nearby Trees <span class="text-xs text-gray-400 font-normal">(modifier: x0.5)</span></p>
+                      <p class="text-xs text-gray-500">Prune trees within the flagged zone to reduce fire fuel load. Reduces required distance by 50%.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Rule 4: Home-to-Home Distance -->
+        <div class="rule-card bg-white rounded-lg border border-gray-200 shadow-sm" data-type="simple" data-name="home-to-home distance" data-desc="minimum distance between buildings">
+          <button onclick="toggleRule('rule4')" class="w-full px-5 py-4 flex items-center justify-between text-left">
+            <div class="flex items-center gap-3">
+              <h3 class="font-semibold text-gray-900">Home-to-Home Distance</h3>
+              <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200">Simple Threshold</span>
+              <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-50 text-red-700 border border-red-200">Unmitigatable</span>
+            </div>
+            <svg id="rule4-chevron" class="w-5 h-5 text-gray-400 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          </button>
+          <div id="rule4-detail" class="rule-detail border-t border-gray-100">
+            <div class="px-5 py-4">
+              <p class="text-sm text-gray-600 mb-4">Properties must maintain a minimum edge-to-edge distance between building footprints. This rule has no mitigations -- if it fails, the property is automatically declined.</p>
+              <div class="mb-4 p-3 bg-gray-50 rounded-md">
+                <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Rule Logic</p>
+                <p class="text-sm font-mono text-gray-700">home_to_home_distance &ge; 15.0 ft</p>
+              </div>
+              <div class="p-3 bg-red-50 rounded-md border border-red-100">
+                <p class="text-sm text-red-700 font-medium">No mitigations available</p>
+                <p class="text-xs text-red-600 mt-1">If this rule is triggered, the property is automatically declined (uninsurable).</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+function toggleRule(id) {
+  const detail = document.getElementById(id + '-detail');
+  const chevron = document.getElementById(id + '-chevron');
+  detail.classList.toggle('open');
+  chevron.style.transform = detail.classList.contains('open') ? 'rotate(180deg)' : '';
+}
+
+function filterRules() {
+  const search = document.getElementById('searchInput').value.toLowerCase();
+  const typeFilter = document.getElementById('typeFilter').value;
+  const cards = document.querySelectorAll('#ruleList > div');
+  let visible = 0;
+
+  cards.forEach(card => {
+    const name = card.dataset.name || '';
+    const desc = card.dataset.desc || '';
+    const type = card.dataset.type || '';
+    const matchesSearch = !search || name.includes(search) || desc.includes(search);
+    const matchesType = !typeFilter || type === typeFilter;
+
+    if (matchesSearch && matchesType) {
+      card.style.display = '';
+      visible++;
+    } else {
+      card.style.display = 'none';
+    }
+  });
+
+  document.getElementById('ruleCount').textContent = `${visible} rule${visible !== 1 ? 's' : ''} shown`;
+}
+</script>
+</body>
+</html>

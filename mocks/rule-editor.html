@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rule Editor - Mitigation Rules Engine</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        brand: { 50: '#eff6ff', 100: '#dbeafe', 200: '#bfdbfe', 500: '#3b82f6', 600: '#2563eb', 700: '#1d4ed8', 800: '#1e40af', 900: '#1e3a5f' }
+      }
+    }
+  }
+}
+</script>
+<style>
+  body { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+  .sidebar-link { transition: background-color 0.15s, color 0.15s; }
+  .sidebar-link:hover { background-color: rgba(255,255,255,0.1); }
+  .sidebar-link.active { background-color: rgba(255,255,255,0.15); border-left: 3px solid #60a5fa; }
+  .tab-btn { transition: all 0.15s; }
+  .tab-btn.active { color: #2563eb; border-bottom-color: #2563eb; }
+  .type-option { transition: all 0.15s; cursor: pointer; }
+  .type-option.selected { border-color: #2563eb; background-color: #eff6ff; }
+  .form-view, .json-view { display: none; }
+  .form-view.active, .json-view.active { display: block; }
+  .condition-row { animation: slideIn 0.2s ease-out; }
+  .modifier-row { animation: slideIn 0.2s ease-out; }
+  @keyframes slideIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+</style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+<div class="flex min-h-screen">
+
+  <!-- Sidebar (Applied Science) -->
+  <aside class="w-64 bg-brand-900 text-white flex flex-col flex-shrink-0">
+    <div class="p-5 border-b border-white/10">
+      <h1 class="text-lg font-bold tracking-tight">Mitigation Rules</h1>
+      <p class="text-xs text-blue-200 mt-0.5">Wildfire Underwriting Engine</p>
+    </div>
+    <nav class="flex-1 py-4 px-3 space-y-1">
+      <p class="px-3 py-1.5 text-xs font-semibold text-blue-300 uppercase tracking-wider">Rule Management</p>
+      <a href="#" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-md text-sm text-blue-100">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+        All Rules
+      </a>
+      <a href="rule-editor.html" class="sidebar-link active flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+        Rule Editor
+      </a>
+      <a href="#" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-md text-sm text-blue-100">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+        Test Sandbox
+      </a>
+      <a href="release-manager.html" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-md text-sm text-blue-100">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
+        Releases
+      </a>
+    </nav>
+    <div class="p-4 border-t border-white/10">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center text-sm font-medium">AS</div>
+        <div>
+          <p class="text-sm font-medium">Alex Smith</p>
+          <p class="text-xs text-blue-200">Applied Science</p>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="flex-1 overflow-auto">
+    <header class="bg-white border-b border-gray-200 px-8 py-4 flex items-center justify-between">
+      <div>
+        <h2 class="text-xl font-semibold text-gray-900">Edit Rule: Window Safety Distance</h2>
+        <p class="text-sm text-gray-500 mt-0.5">Draft &mdash; Last saved 2 minutes ago</p>
+      </div>
+      <div class="flex items-center gap-3">
+        <!-- View toggle -->
+        <div class="inline-flex rounded-lg border border-gray-300 overflow-hidden">
+          <button onclick="switchView('form')" id="formTab" class="px-3 py-1.5 text-xs font-medium bg-brand-50 text-brand-700 border-r border-gray-300">Form View</button>
+          <button onclick="switchView('json')" id="jsonTab" class="px-3 py-1.5 text-xs font-medium text-gray-500 hover:bg-gray-50">JSON Editor</button>
+        </div>
+      </div>
+    </header>
+
+    <div class="max-w-5xl mx-auto px-8 py-8">
+
+      <!-- Form View -->
+      <div id="formView" class="form-view active">
+
+        <!-- Basic Info -->
+        <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-6 mb-6">
+          <h3 class="text-base font-semibold text-gray-900 mb-4">Basic Information</h3>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Rule Name <span class="text-red-500">*</span></label>
+              <input type="text" value="Window Safety Distance" class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Rule ID</label>
+              <input type="text" value="rule-window-safety" disabled class="w-full rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-500">
+            </div>
+            <div class="sm:col-span-2">
+              <label class="block text-sm font-medium text-gray-700 mb-1">Description (shown to policyholders) <span class="text-red-500">*</span></label>
+              <textarea rows="2" class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500">Windows must be a safe distance from surrounding vegetation based on glass type and vegetation type</textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- Rule Type Selector -->
+        <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-6 mb-6">
+          <h3 class="text-base font-semibold text-gray-900 mb-4">Rule Type <span class="text-red-500">*</span></h3>
+          <div class="grid grid-cols-3 gap-4">
+            <div class="type-option rounded-lg border-2 border-gray-200 p-4 text-center" onclick="selectType('simple')">
+              <div class="w-10 h-10 mx-auto rounded-full bg-blue-50 flex items-center justify-center mb-2">
+                <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4"/></svg>
+              </div>
+              <p class="text-sm font-medium text-gray-900">Simple Threshold</p>
+              <p class="text-xs text-gray-500 mt-1">Single field comparison</p>
+            </div>
+            <div class="type-option rounded-lg border-2 border-gray-200 p-4 text-center" onclick="selectType('conditional')">
+              <div class="w-10 h-10 mx-auto rounded-full bg-purple-50 flex items-center justify-center mb-2">
+                <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l4-4 4 4m0 6l-4 4-4-4"/></svg>
+              </div>
+              <p class="text-sm font-medium text-gray-900">Conditional Threshold</p>
+              <p class="text-xs text-gray-500 mt-1">When/then branches</p>
+            </div>
+            <div class="type-option selected rounded-lg border-2 p-4 text-center" onclick="selectType('computed')">
+              <div class="w-10 h-10 mx-auto rounded-full bg-amber-50 flex items-center justify-center mb-2">
+                <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2 1 3 3 3h10c2 0 3-1 3-3V7c0-2-1-3-3-3H7C5 4 4 5 4 7zm5 2h6m-6 4h6"/></svg>
+              </div>
+              <p class="text-sm font-medium text-gray-900">Computed with Modifiers</p>
+              <p class="text-xs text-gray-500 mt-1">Base value + modifiers</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Simple Threshold Config (hidden) -->
+        <div id="simpleConfig" class="hidden bg-white rounded-lg border border-gray-200 shadow-sm p-6 mb-6">
+          <h3 class="text-base font-semibold text-gray-900 mb-4">Simple Threshold Configuration</h3>
+          <div class="grid grid-cols-3 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Field</label>
+              <select class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                <option>attic_vent_screens</option>
+                <option>roof_type</option>
+                <option>window_type</option>
+                <option>home_to_home_distance</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Operator</label>
+              <select class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                <option value="eq">equals (=)</option>
+                <option value="neq">not equals (!=)</option>
+                <option value="in">in list</option>
+                <option value="gte">greater or equal (>=)</option>
+                <option value="lte">less or equal (<=)</option>
+                <option value="gt">greater than (>)</option>
+                <option value="lt">less than (<)</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Value</label>
+              <input type="text" placeholder="e.g., Ember Resistant" class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+            </div>
+          </div>
+        </div>
+
+        <!-- Conditional Config (hidden) -->
+        <div id="conditionalConfig" class="hidden bg-white rounded-lg border border-gray-200 shadow-sm p-6 mb-6">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-base font-semibold text-gray-900">Conditional Branches</h3>
+            <button type="button" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-brand-700 bg-brand-50 border border-brand-200 rounded-md hover:bg-brand-100">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
+              Add Condition
+            </button>
+          </div>
+          <div class="space-y-3">
+            <div class="condition-row p-4 bg-purple-50 rounded-lg border border-purple-100">
+              <p class="text-xs font-semibold text-purple-600 uppercase mb-2">WHEN</p>
+              <div class="grid grid-cols-3 gap-3 mb-3">
+                <select class="rounded-md border border-gray-300 px-3 py-2 text-sm"><option>wildfire_risk_category</option></select>
+                <select class="rounded-md border border-gray-300 px-3 py-2 text-sm"><option value="eq">equals (=)</option></select>
+                <input type="text" value="A" class="rounded-md border border-gray-300 px-3 py-2 text-sm">
+              </div>
+              <p class="text-xs font-semibold text-purple-600 uppercase mb-2">THEN</p>
+              <div class="grid grid-cols-3 gap-3">
+                <select class="rounded-md border border-gray-300 px-3 py-2 text-sm"><option>roof_type</option></select>
+                <select class="rounded-md border border-gray-300 px-3 py-2 text-sm"><option value="in">in list</option></select>
+                <input type="text" value="Class A, Class B" class="rounded-md border border-gray-300 px-3 py-2 text-sm">
+              </div>
+            </div>
+            <div class="p-4 bg-gray-50 rounded-lg border border-gray-200">
+              <p class="text-xs font-semibold text-gray-500 uppercase mb-2">DEFAULT (no condition match)</p>
+              <div class="grid grid-cols-3 gap-3">
+                <select class="rounded-md border border-gray-300 px-3 py-2 text-sm"><option>roof_type</option></select>
+                <select class="rounded-md border border-gray-300 px-3 py-2 text-sm"><option value="eq">equals (=)</option></select>
+                <input type="text" value="Class A" class="rounded-md border border-gray-300 px-3 py-2 text-sm">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Computed Config (shown) -->
+        <div id="computedConfig" class="bg-white rounded-lg border border-gray-200 shadow-sm p-6 mb-6">
+          <h3 class="text-base font-semibold text-gray-900 mb-4">Computed Configuration</h3>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-6">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Base Value <span class="text-red-500">*</span></label>
+              <input type="number" value="30" class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Unit</label>
+              <input type="text" value="feet" class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Comparison Field</label>
+              <input type="text" value="vegetation[].distance_to_window" class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+            </div>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-6">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Comparison Operator</label>
+              <select class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                <option value="gte" selected>Pass if actual >= threshold</option>
+                <option value="gt">Pass if actual > threshold</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Array Field (optional)</label>
+              <input type="text" value="vegetation" placeholder="e.g., vegetation" class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+              <p class="text-xs text-gray-400 mt-1">If set, each item in the array is evaluated independently</p>
+            </div>
+          </div>
+
+          <!-- Modifiers -->
+          <div class="border-t border-gray-200 pt-5">
+            <div class="flex items-center justify-between mb-3">
+              <h4 class="text-sm font-semibold text-gray-900">Modifiers</h4>
+              <button type="button" onclick="addModifier()" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-brand-700 bg-brand-50 border border-brand-200 rounded-md hover:bg-brand-100">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
+                Add Modifier
+              </button>
+            </div>
+            <div id="modifierList" class="space-y-3">
+              <!-- Modifier 1: Window Type -->
+              <div class="modifier-row p-4 bg-gray-50 rounded-lg border border-gray-200">
+                <div class="flex items-center justify-between mb-3">
+                  <span class="text-xs font-semibold text-gray-500 uppercase">Modifier 1</span>
+                  <button type="button" class="p-1 text-gray-400 hover:text-red-500 rounded">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                  </button>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
+                  <div>
+                    <label class="block text-xs text-gray-500 mb-1">Field</label>
+                    <input type="text" value="window_type" class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                  </div>
+                  <div>
+                    <label class="block text-xs text-gray-500 mb-1">Operation</label>
+                    <select class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                      <option value="multiply" selected>Multiply (x)</option>
+                      <option value="divide">Divide (/)</option>
+                    </select>
+                  </div>
+                </div>
+                <div>
+                  <label class="block text-xs text-gray-500 mb-1">Value Mapping</label>
+                  <div class="space-y-1.5">
+                    <div class="flex gap-2 items-center">
+                      <input type="text" value="Single Pane" class="flex-1 rounded-md border border-gray-300 px-3 py-1.5 text-sm">
+                      <span class="text-gray-400 text-sm">=</span>
+                      <input type="number" value="3" class="w-20 rounded-md border border-gray-300 px-3 py-1.5 text-sm">
+                    </div>
+                    <div class="flex gap-2 items-center">
+                      <input type="text" value="Double Pane" class="flex-1 rounded-md border border-gray-300 px-3 py-1.5 text-sm">
+                      <span class="text-gray-400 text-sm">=</span>
+                      <input type="number" value="2" class="w-20 rounded-md border border-gray-300 px-3 py-1.5 text-sm">
+                    </div>
+                    <div class="flex gap-2 items-center">
+                      <input type="text" value="Tempered Glass" class="flex-1 rounded-md border border-gray-300 px-3 py-1.5 text-sm">
+                      <span class="text-gray-400 text-sm">=</span>
+                      <input type="number" value="1" class="w-20 rounded-md border border-gray-300 px-3 py-1.5 text-sm">
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <!-- Modifier 2: Vegetation Type -->
+              <div class="modifier-row p-4 bg-gray-50 rounded-lg border border-gray-200">
+                <div class="flex items-center justify-between mb-3">
+                  <span class="text-xs font-semibold text-gray-500 uppercase">Modifier 2</span>
+                  <button type="button" class="p-1 text-gray-400 hover:text-red-500 rounded">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                  </button>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
+                  <div>
+                    <label class="block text-xs text-gray-500 mb-1">Field</label>
+                    <input type="text" value="vegetation[].type" class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                  </div>
+                  <div>
+                    <label class="block text-xs text-gray-500 mb-1">Operation</label>
+                    <select class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                      <option value="multiply">Multiply (x)</option>
+                      <option value="divide" selected>Divide (/)</option>
+                    </select>
+                  </div>
+                </div>
+                <div>
+                  <label class="block text-xs text-gray-500 mb-1">Value Mapping</label>
+                  <div class="space-y-1.5">
+                    <div class="flex gap-2 items-center">
+                      <input type="text" value="Tree" class="flex-1 rounded-md border border-gray-300 px-3 py-1.5 text-sm">
+                      <span class="text-gray-400 text-sm">=</span>
+                      <input type="number" value="1" class="w-20 rounded-md border border-gray-300 px-3 py-1.5 text-sm">
+                    </div>
+                    <div class="flex gap-2 items-center">
+                      <input type="text" value="Shrub" class="flex-1 rounded-md border border-gray-300 px-3 py-1.5 text-sm">
+                      <span class="text-gray-400 text-sm">=</span>
+                      <input type="number" value="2" class="w-20 rounded-md border border-gray-300 px-3 py-1.5 text-sm">
+                    </div>
+                    <div class="flex gap-2 items-center">
+                      <input type="text" value="Grass" class="flex-1 rounded-md border border-gray-300 px-3 py-1.5 text-sm">
+                      <span class="text-gray-400 text-sm">=</span>
+                      <input type="number" value="3" class="w-20 rounded-md border border-gray-300 px-3 py-1.5 text-sm">
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mitigations -->
+        <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-6 mb-6">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-base font-semibold text-gray-900">Mitigations</h3>
+            <button type="button" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-brand-700 bg-brand-50 border border-brand-200 rounded-md hover:bg-brand-100">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
+              Add Mitigation
+            </button>
+          </div>
+          <p class="text-xs text-gray-400 mb-4">If no mitigations are defined, the rule will be unmitigatable (auto-decline on failure).</p>
+          <div class="space-y-3">
+            <!-- Full mitigation -->
+            <div class="p-4 bg-green-50 rounded-lg border border-green-200">
+              <div class="flex items-center justify-between mb-3">
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">Full Mitigation</span>
+                <button type="button" class="p-1 text-gray-400 hover:text-red-500 rounded">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-xs text-gray-500 mb-1">Name</label>
+                  <input type="text" value="Replace with Tempered Glass" class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm">
+                </div>
+                <div>
+                  <label class="block text-xs text-gray-500 mb-1">Category</label>
+                  <select class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm">
+                    <option value="full" selected>Full Mitigation</option>
+                    <option value="bridge">Bridge Mitigation</option>
+                  </select>
+                </div>
+                <div class="sm:col-span-2">
+                  <label class="block text-xs text-gray-500 mb-1">Description</label>
+                  <input type="text" value="Upgrade all windows to tempered glass (modifier becomes x1)" class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm">
+                </div>
+              </div>
+            </div>
+            <!-- Bridge mitigation 1 -->
+            <div class="p-4 bg-amber-50 rounded-lg border border-amber-200">
+              <div class="flex items-center justify-between mb-3">
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-700">Bridge Mitigation</span>
+                <button type="button" class="p-1 text-gray-400 hover:text-red-500 rounded">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label class="block text-xs text-gray-500 mb-1">Name</label>
+                  <input type="text" value="Apply Protective Film" class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm">
+                </div>
+                <div>
+                  <label class="block text-xs text-gray-500 mb-1">Category</label>
+                  <select class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm">
+                    <option value="full">Full Mitigation</option>
+                    <option value="bridge" selected>Bridge Mitigation</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-xs text-gray-500 mb-1">Bridge Effect (multiplier)</label>
+                  <input type="number" step="0.1" value="0.8" class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm">
+                </div>
+                <div class="sm:col-span-3">
+                  <label class="block text-xs text-gray-500 mb-1">Description</label>
+                  <input type="text" value="Apply protective window film to reduce heat transmission. Reduces required distance by 20%." class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm">
+                </div>
+              </div>
+            </div>
+            <!-- Bridge mitigation 2 -->
+            <div class="p-4 bg-amber-50 rounded-lg border border-amber-200">
+              <div class="flex items-center justify-between mb-3">
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-700">Bridge Mitigation</span>
+                <button type="button" class="p-1 text-gray-400 hover:text-red-500 rounded">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label class="block text-xs text-gray-500 mb-1">Name</label>
+                  <input type="text" value="Prune Nearby Trees" class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm">
+                </div>
+                <div>
+                  <label class="block text-xs text-gray-500 mb-1">Category</label>
+                  <select class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm">
+                    <option value="full">Full Mitigation</option>
+                    <option value="bridge" selected>Bridge Mitigation</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-xs text-gray-500 mb-1">Bridge Effect (multiplier)</label>
+                  <input type="number" step="0.1" value="0.5" class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm">
+                </div>
+                <div class="sm:col-span-3">
+                  <label class="block text-xs text-gray-500 mb-1">Description</label>
+                  <input type="text" value="Prune trees within the flagged zone to reduce fire fuel load. Reduces required distance by 50%." class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="flex items-center justify-between pb-8">
+          <button type="button" class="px-4 py-2 text-sm text-gray-500 hover:text-gray-700">Cancel</button>
+          <div class="flex gap-3">
+            <button type="button" class="px-5 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+              Save Draft
+            </button>
+            <button type="button" onclick="alert('Test Rule functionality would open the test sandbox with this rule pre-loaded.')" class="px-5 py-2.5 text-sm font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded-lg hover:bg-amber-100 transition-colors flex items-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+              Test Rule
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- JSON View -->
+      <div id="jsonView" class="json-view">
+        <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-6 mb-6">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-base font-semibold text-gray-900">JSON Definition</h3>
+            <div class="flex items-center gap-2">
+              <button type="button" class="px-3 py-1.5 text-xs font-medium text-gray-500 bg-gray-100 rounded hover:bg-gray-200">Format</button>
+              <button type="button" class="px-3 py-1.5 text-xs font-medium text-gray-500 bg-gray-100 rounded hover:bg-gray-200">Validate</button>
+            </div>
+          </div>
+          <textarea id="jsonEditor" rows="40" class="w-full font-mono text-sm rounded-md border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-500 bg-gray-50" spellcheck="false">{
+  "id": "rule-window-safety",
+  "name": "Window Safety Distance",
+  "description": "Windows must be a safe distance from surrounding vegetation based on glass type and vegetation type",
+  "type": "computed_with_modifiers",
+  "config": {
+    "baseValue": 30,
+    "unit": "feet",
+    "modifiers": [
+      {
+        "field": "window_type",
+        "mapping": {
+          "Single Pane": 3,
+          "Double Pane": 2,
+          "Tempered Glass": 1
+        },
+        "operation": "multiply"
+      },
+      {
+        "field": "vegetation[].type",
+        "mapping": {
+          "Tree": 1,
+          "Shrub": 2,
+          "Grass": 3
+        },
+        "operation": "divide"
+      }
+    ],
+    "comparisonField": "vegetation[].distance_to_window",
+    "comparisonOperator": "gte",
+    "arrayField": "vegetation"
+  },
+  "mitigations": [
+    {
+      "id": "mit-5",
+      "name": "Replace with Tempered Glass",
+      "description": "Upgrade all windows to tempered glass (modifier becomes x1)",
+      "category": "full"
+    },
+    {
+      "id": "mit-6",
+      "name": "Apply Protective Film",
+      "description": "Apply protective window film to reduce heat transmission. Reduces required distance by 20%.",
+      "category": "bridge",
+      "effect": { "type": "multiplier", "value": 0.8 }
+    },
+    {
+      "id": "mit-7",
+      "name": "Prune Nearby Trees",
+      "description": "Prune trees within the flagged zone to reduce fire fuel load. Reduces required distance by 50%.",
+      "category": "bridge",
+      "effect": { "type": "multiplier", "value": 0.5 }
+    }
+  ]
+}</textarea>
+        </div>
+        <div class="flex items-center justify-between pb-8">
+          <button type="button" class="px-4 py-2 text-sm text-gray-500 hover:text-gray-700">Cancel</button>
+          <div class="flex gap-3">
+            <button type="button" class="px-5 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">Save Draft</button>
+            <button type="button" class="px-5 py-2.5 text-sm font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded-lg hover:bg-amber-100 flex items-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+              Test Rule
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<script>
+function switchView(view) {
+  const formView = document.getElementById('formView');
+  const jsonView = document.getElementById('jsonView');
+  const formTab = document.getElementById('formTab');
+  const jsonTab = document.getElementById('jsonTab');
+
+  if (view === 'form') {
+    formView.classList.add('active');
+    jsonView.classList.remove('active');
+    formTab.classList.add('bg-brand-50', 'text-brand-700');
+    formTab.classList.remove('text-gray-500');
+    jsonTab.classList.remove('bg-brand-50', 'text-brand-700');
+    jsonTab.classList.add('text-gray-500');
+  } else {
+    formView.classList.remove('active');
+    jsonView.classList.add('active');
+    jsonTab.classList.add('bg-brand-50', 'text-brand-700');
+    jsonTab.classList.remove('text-gray-500');
+    formTab.classList.remove('bg-brand-50', 'text-brand-700');
+    formTab.classList.add('text-gray-500');
+  }
+}
+
+function selectType(type) {
+  document.querySelectorAll('.type-option').forEach(el => {
+    el.classList.remove('selected');
+    el.style.borderColor = '';
+    el.style.backgroundColor = '';
+  });
+  event.currentTarget.closest('.type-option').classList.add('selected');
+
+  document.getElementById('simpleConfig').classList.add('hidden');
+  document.getElementById('conditionalConfig').classList.add('hidden');
+  document.getElementById('computedConfig').classList.add('hidden');
+
+  if (type === 'simple') document.getElementById('simpleConfig').classList.remove('hidden');
+  if (type === 'conditional') document.getElementById('conditionalConfig').classList.remove('hidden');
+  if (type === 'computed') document.getElementById('computedConfig').classList.remove('hidden');
+}
+
+function addModifier() {
+  const list = document.getElementById('modifierList');
+  const count = list.children.length + 1;
+  const div = document.createElement('div');
+  div.className = 'modifier-row p-4 bg-gray-50 rounded-lg border border-gray-200';
+  div.innerHTML = `
+    <div class="flex items-center justify-between mb-3">
+      <span class="text-xs font-semibold text-gray-500 uppercase">Modifier ${count}</span>
+      <button type="button" onclick="this.closest('.modifier-row').remove()" class="p-1 text-gray-400 hover:text-red-500 rounded">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
+      <div>
+        <label class="block text-xs text-gray-500 mb-1">Field</label>
+        <input type="text" placeholder="e.g., field_name" class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm">
+      </div>
+      <div>
+        <label class="block text-xs text-gray-500 mb-1">Operation</label>
+        <select class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm">
+          <option value="multiply">Multiply (x)</option>
+          <option value="divide">Divide (/)</option>
+        </select>
+      </div>
+    </div>
+    <div>
+      <label class="block text-xs text-gray-500 mb-1">Value Mapping</label>
+      <div class="flex gap-2 items-center">
+        <input type="text" placeholder="Value" class="flex-1 rounded-md border border-gray-300 px-3 py-1.5 text-sm">
+        <span class="text-gray-400 text-sm">=</span>
+        <input type="number" placeholder="0" class="w-20 rounded-md border border-gray-300 px-3 py-1.5 text-sm">
+      </div>
+    </div>
+  `;
+  list.appendChild(div);
+}
+</script>
+</body>
+</html>

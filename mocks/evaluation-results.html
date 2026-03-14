@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Evaluation Results - Mitigation Rules Engine</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        brand: { 50: '#eff6ff', 100: '#dbeafe', 200: '#bfdbfe', 500: '#3b82f6', 600: '#2563eb', 700: '#1d4ed8', 800: '#1e40af', 900: '#1e3a5f' }
+      }
+    }
+  }
+}
+</script>
+<style>
+  body { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+  .sidebar-link { transition: background-color 0.15s, color 0.15s; }
+  .sidebar-link:hover { background-color: rgba(255,255,255,0.1); }
+  .sidebar-link.active { background-color: rgba(255,255,255,0.15); border-left: 3px solid #60a5fa; }
+  .vuln-card { transition: box-shadow 0.2s; }
+  .vuln-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+  .mitigation-section { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out, padding 0.3s ease-out; }
+  .mitigation-section.open { max-height: 1200px; padding-top: 1rem; }
+  .bridge-check:checked + .bridge-label { background-color: #fffbeb; border-color: #f59e0b; }
+  .full-check:checked + .full-label { background-color: #ecfdf5; border-color: #10b981; }
+</style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+<div class="flex min-h-screen">
+
+  <!-- Sidebar -->
+  <aside class="w-64 bg-brand-900 text-white flex flex-col flex-shrink-0">
+    <div class="p-5 border-b border-white/10">
+      <h1 class="text-lg font-bold tracking-tight">Mitigation Rules</h1>
+      <p class="text-xs text-blue-200 mt-0.5">Wildfire Underwriting Engine</p>
+    </div>
+    <nav class="flex-1 py-4 px-3 space-y-1">
+      <a href="evaluation-form.html" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-md text-sm text-blue-100">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        New Evaluation
+      </a>
+      <a href="evaluation-results.html" class="sidebar-link active flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        Results
+      </a>
+      <a href="rule-reference.html" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-md text-sm text-blue-100">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+        Rule Reference
+      </a>
+    </nav>
+    <div class="p-4 border-t border-white/10">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-sm font-medium">JD</div>
+        <div>
+          <p class="text-sm font-medium">Jane Doe</p>
+          <p class="text-xs text-blue-200">Underwriter</p>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="flex-1 overflow-auto">
+    <header class="bg-white border-b border-gray-200 px-8 py-4 flex items-center justify-between">
+      <div>
+        <h2 class="text-xl font-semibold text-gray-900">Evaluation Results</h2>
+        <p class="text-sm text-gray-500 mt-0.5">Property #P-2026-0847 &mdash; California</p>
+      </div>
+      <div class="flex items-center gap-3">
+        <span class="text-xs text-gray-400">Evaluated against:</span>
+        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200">2026-Q1-v2.0</span>
+      </div>
+    </header>
+
+    <div class="max-w-5xl mx-auto px-8 py-8">
+
+      <!-- Summary Bar -->
+      <div class="grid grid-cols-4 gap-4 mb-6">
+        <div class="bg-white rounded-lg border border-gray-200 p-4 text-center">
+          <p class="text-2xl font-bold text-gray-900">4</p>
+          <p class="text-xs text-gray-500 mt-1">Total Vulnerabilities</p>
+        </div>
+        <div class="bg-white rounded-lg border border-red-200 p-4 text-center">
+          <p class="text-2xl font-bold text-red-600">1</p>
+          <p class="text-xs text-gray-500 mt-1">Auto-Decline</p>
+        </div>
+        <div class="bg-white rounded-lg border border-amber-200 p-4 text-center">
+          <p class="text-2xl font-bold text-amber-600">3</p>
+          <p class="text-xs text-gray-500 mt-1">Mitigatable</p>
+        </div>
+        <div class="bg-white rounded-lg border border-blue-200 p-4 text-center">
+          <p class="text-2xl font-bold text-blue-600" id="bridgeCount">0</p>
+          <p class="text-xs text-gray-500 mt-1">Bridge Used / <span class="font-semibold">3</span> Limit</p>
+        </div>
+      </div>
+
+      <!-- Auto-Decline Banner -->
+      <div class="bg-red-50 border border-red-300 rounded-lg p-4 mb-6 flex items-start gap-3">
+        <svg class="w-6 h-6 text-red-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>
+        <div>
+          <p class="font-semibold text-red-800">Auto-Decline Triggered</p>
+          <p class="text-sm text-red-700 mt-1">This property fails the <strong>Home-to-Home Distance</strong> rule (minimum 15.0 ft required, observed 8.0 ft). This vulnerability has no available mitigations and the property cannot be insured under current rules.</p>
+          <p class="text-xs text-red-500 mt-2">Note: The remaining mitigatable vulnerabilities are shown below for informational purposes.</p>
+        </div>
+      </div>
+
+      <!-- Vulnerability Cards -->
+      <div class="space-y-4">
+
+        <!-- Card 1: Home-to-Home (UNMITIGATABLE) -->
+        <div class="vuln-card bg-white rounded-lg border-2 border-red-300 shadow-sm overflow-hidden">
+          <div class="p-5">
+            <div class="flex items-start justify-between">
+              <div class="flex items-center gap-3">
+                <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-red-100 text-red-600">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
+                </span>
+                <div>
+                  <h3 class="font-semibold text-gray-900">Home-to-Home Distance</h3>
+                  <p class="text-sm text-gray-500 mt-0.5">Properties must maintain a minimum distance between buildings</p>
+                </div>
+              </div>
+              <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700">Unmitigatable</span>
+            </div>
+            <div class="mt-4 p-3 bg-red-50 rounded-md">
+              <p class="text-sm text-gray-700"><span class="font-medium">Why flagged:</span> Home-to-home distance is <span class="font-semibold text-red-700">8.0 ft</span> but must be <span class="font-semibold">&ge; 15.0 ft</span></p>
+              <div class="flex gap-6 mt-2 text-xs text-gray-500">
+                <span>Observed: <span class="font-medium text-gray-700">8.0 ft</span></span>
+                <span>Required: <span class="font-medium text-gray-700">&ge; 15.0 ft</span></span>
+                <span>Rule Type: <span class="font-medium text-gray-700">Simple Threshold</span></span>
+              </div>
+            </div>
+            <p class="mt-3 text-sm text-red-600 font-medium">No mitigations available. Property auto-declined.</p>
+          </div>
+        </div>
+
+        <!-- Card 2: Attic Vent (MITIGATABLE - Simple) -->
+        <div class="vuln-card bg-white rounded-lg border-2 border-amber-200 shadow-sm overflow-hidden">
+          <div class="p-5">
+            <div class="flex items-start justify-between">
+              <div class="flex items-center gap-3">
+                <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-amber-100 text-amber-600">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>
+                </span>
+                <div>
+                  <h3 class="font-semibold text-gray-900">Attic Vent Screens</h3>
+                  <p class="text-sm text-gray-500 mt-0.5">All vents must be able to withstand embers during a wildfire event</p>
+                </div>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-700">Mitigatable</span>
+                <button onclick="toggleMitigation('attic')" class="p-1.5 text-gray-400 hover:text-gray-600 rounded hover:bg-gray-100 transition-colors">
+                  <svg id="attic-chevron" class="w-5 h-5 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                </button>
+              </div>
+            </div>
+            <div class="mt-4 p-3 bg-amber-50 rounded-md">
+              <p class="text-sm text-gray-700"><span class="font-medium">Why flagged:</span> Attic vent screens are <span class="font-semibold text-amber-700">"Standard"</span> but must be <span class="font-semibold">"Ember Resistant"</span></p>
+              <div class="flex gap-6 mt-2 text-xs text-gray-500">
+                <span>Observed: <span class="font-medium text-gray-700">Standard</span></span>
+                <span>Required: <span class="font-medium text-gray-700">Ember Resistant</span></span>
+                <span>Rule Type: <span class="font-medium text-gray-700">Simple Threshold</span></span>
+              </div>
+            </div>
+          </div>
+          <!-- Mitigations (expandable) -->
+          <div id="attic-mitigations" class="mitigation-section border-t border-gray-100 px-5 pb-5">
+            <!-- Full Mitigation -->
+            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Mitigations</p>
+            <label class="block cursor-pointer mb-2">
+              <input type="checkbox" class="full-check hidden peer" onchange="updateBridgeCount()">
+              <div class="full-label flex items-start gap-3 p-3 border border-gray-200 rounded-lg hover:border-green-300 transition-colors peer-checked:bg-green-50 peer-checked:border-green-500">
+                <span class="mt-0.5 inline-flex items-center justify-center w-6 h-6 rounded-full bg-green-100 text-green-600 flex-shrink-0">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                </span>
+                <div class="flex-1">
+                  <div class="flex items-center gap-2">
+                    <span class="text-sm font-medium text-gray-900">Install Ember-Rated Vents</span>
+                    <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">Full</span>
+                  </div>
+                  <p class="text-xs text-gray-500 mt-1">Replace all attic vents with 1/8" ember-resistant mesh screens. Completely eliminates this vulnerability.</p>
+                </div>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- Card 3: Roof Type (MITIGATABLE - Conditional) -->
+        <div class="vuln-card bg-white rounded-lg border-2 border-amber-200 shadow-sm overflow-hidden">
+          <div class="p-5">
+            <div class="flex items-start justify-between">
+              <div class="flex items-center gap-3">
+                <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-amber-100 text-amber-600">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>
+                </span>
+                <div>
+                  <h3 class="font-semibold text-gray-900">Roof Type</h3>
+                  <p class="text-sm text-gray-500 mt-0.5">Roof must meet fire resistance standards based on risk category</p>
+                </div>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-700">Mitigatable</span>
+                <button onclick="toggleMitigation('roof')" class="p-1.5 text-gray-400 hover:text-gray-600 rounded hover:bg-gray-100 transition-colors">
+                  <svg id="roof-chevron" class="w-5 h-5 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                </button>
+              </div>
+            </div>
+            <div class="mt-4 p-3 bg-amber-50 rounded-md">
+              <p class="text-sm text-gray-700"><span class="font-medium">Why flagged:</span> Roof type is <span class="font-semibold text-amber-700">"Class C"</span> but must be <span class="font-semibold">"Class A"</span> for Wildfire Risk Category C</p>
+              <p class="text-xs text-gray-500 mt-1">Conditional: Class B is only acceptable when Risk Category = A</p>
+              <div class="flex gap-6 mt-2 text-xs text-gray-500">
+                <span>Observed: <span class="font-medium text-gray-700">Class C</span></span>
+                <span>Required: <span class="font-medium text-gray-700">Class A</span></span>
+                <span>Rule Type: <span class="font-medium text-gray-700">Conditional Threshold</span></span>
+              </div>
+            </div>
+          </div>
+          <div id="roof-mitigations" class="mitigation-section border-t border-gray-100 px-5 pb-5">
+            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Mitigations</p>
+            <label class="block cursor-pointer mb-2">
+              <input type="checkbox" class="full-check hidden peer" onchange="updateBridgeCount()">
+              <div class="full-label flex items-start gap-3 p-3 border border-gray-200 rounded-lg hover:border-green-300 transition-colors peer-checked:bg-green-50 peer-checked:border-green-500">
+                <span class="mt-0.5 inline-flex items-center justify-center w-6 h-6 rounded-full bg-green-100 text-green-600 flex-shrink-0">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                </span>
+                <div class="flex-1">
+                  <div class="flex items-center gap-2">
+                    <span class="text-sm font-medium text-gray-900">Replace Roof with Class A Material</span>
+                    <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">Full</span>
+                  </div>
+                  <p class="text-xs text-gray-500 mt-1">Install a Class A fire-resistant roof (e.g., concrete tile, metal, slate). Completely resolves this vulnerability.</p>
+                </div>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- Card 4: Window Safety Distance (MITIGATABLE - Computed) -->
+        <div class="vuln-card bg-white rounded-lg border-2 border-amber-200 shadow-sm overflow-hidden">
+          <div class="p-5">
+            <div class="flex items-start justify-between">
+              <div class="flex items-center gap-3">
+                <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-amber-100 text-amber-600">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>
+                </span>
+                <div>
+                  <h3 class="font-semibold text-gray-900">Window Safety Distance</h3>
+                  <p class="text-sm text-gray-500 mt-0.5">Windows must be a safe distance from vegetation based on glass type and vegetation type</p>
+                </div>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-700">Mitigatable</span>
+                <button onclick="toggleMitigation('window')" class="p-1.5 text-gray-400 hover:text-gray-600 rounded hover:bg-gray-100 transition-colors">
+                  <svg id="window-chevron" class="w-5 h-5 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                </button>
+              </div>
+            </div>
+            <div class="mt-4 p-3 bg-amber-50 rounded-md">
+              <p class="text-sm text-gray-700"><span class="font-medium">Why flagged:</span> Tree at <span class="font-semibold text-amber-700">50 ft</span> but required safe distance is <span class="font-semibold">90 ft</span></p>
+              <div class="flex gap-6 mt-2 text-xs text-gray-500">
+                <span>Observed: <span class="font-medium text-gray-700">50 ft (Tree)</span></span>
+                <span>Required: <span class="font-medium text-gray-700">&ge; 90 ft</span></span>
+                <span>Rule Type: <span class="font-medium text-gray-700">Computed with Modifiers</span></span>
+              </div>
+            </div>
+            <!-- Computation breakdown -->
+            <div class="mt-3 p-3 bg-gray-50 rounded-md border border-gray-200">
+              <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Computation Breakdown</p>
+              <div class="space-y-1 text-sm text-gray-700 font-mono">
+                <div class="flex items-center gap-2">
+                  <span class="text-gray-400 w-4 text-right"></span>
+                  <span>Base safe distance</span>
+                  <span class="ml-auto font-semibold">30 ft</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="text-gray-400 w-4 text-right">x</span>
+                  <span>Window modifier (Single Pane)</span>
+                  <span class="ml-auto font-semibold">3</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="text-gray-400 w-4 text-right">x</span>
+                  <span>Vegetation modifier (Tree)</span>
+                  <span class="ml-auto font-semibold">1</span>
+                </div>
+                <div class="border-t border-gray-300 pt-1 flex items-center gap-2">
+                  <span class="text-gray-400 w-4 text-right">=</span>
+                  <span class="font-semibold">Required safe distance</span>
+                  <span class="ml-auto font-bold text-red-600">90 ft</span>
+                </div>
+                <div class="flex items-center gap-2 text-red-600">
+                  <span class="w-4"></span>
+                  <span>Actual: 50 ft &lt; 90 ft</span>
+                  <span class="ml-auto font-bold">FAIL</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div id="window-mitigations" class="mitigation-section border-t border-gray-100 px-5 pb-5">
+            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Mitigations</p>
+
+            <!-- Full Mitigation -->
+            <label class="block cursor-pointer mb-3">
+              <input type="checkbox" class="full-check hidden peer" onchange="updateBridgeCount()">
+              <div class="full-label flex items-start gap-3 p-3 border border-gray-200 rounded-lg hover:border-green-300 transition-colors peer-checked:bg-green-50 peer-checked:border-green-500">
+                <span class="mt-0.5 inline-flex items-center justify-center w-6 h-6 rounded-full bg-green-100 text-green-600 flex-shrink-0">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                </span>
+                <div class="flex-1">
+                  <div class="flex items-center gap-2">
+                    <span class="text-sm font-medium text-gray-900">Replace with Tempered Glass</span>
+                    <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">Full</span>
+                  </div>
+                  <p class="text-xs text-gray-500 mt-1">Upgrade all windows to tempered glass (modifier x1). Required distance drops to 30 ft. Completely resolves this vulnerability.</p>
+                </div>
+              </div>
+            </label>
+
+            <!-- Bridge Mitigations -->
+            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 mt-4">Bridge Mitigations</p>
+            <p class="text-xs text-gray-400 mb-3">Bridge mitigations reduce the required distance. They stack multiplicatively.</p>
+
+            <label class="block cursor-pointer mb-2">
+              <input type="checkbox" class="bridge-check hidden peer" data-bridge="1" onchange="updateBridgeCount()">
+              <div class="bridge-label flex items-start gap-3 p-3 border border-gray-200 rounded-lg hover:border-amber-300 transition-colors peer-checked:bg-amber-50 peer-checked:border-amber-500">
+                <span class="mt-0.5 inline-flex items-center justify-center w-6 h-6 rounded-full bg-amber-100 text-amber-600 flex-shrink-0">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                </span>
+                <div class="flex-1">
+                  <div class="flex items-center gap-2">
+                    <span class="text-sm font-medium text-gray-900">Apply Protective Film</span>
+                    <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-700">Bridge</span>
+                    <span class="text-xs text-gray-400 ml-auto">Modifier: x0.8</span>
+                  </div>
+                  <p class="text-xs text-gray-500 mt-1">Apply protective window film to reduce heat transmission. Reduces required distance by 20%.</p>
+                  <p class="text-xs text-gray-400 mt-1">90 ft x 0.8 = <span class="font-semibold text-amber-700">72 ft</span> &mdash; 50 ft &lt; 72 ft = <span class="font-semibold text-red-500">Still fails</span></p>
+                </div>
+              </div>
+            </label>
+
+            <label class="block cursor-pointer mb-2">
+              <input type="checkbox" class="bridge-check hidden peer" data-bridge="1" onchange="updateBridgeCount()">
+              <div class="bridge-label flex items-start gap-3 p-3 border border-gray-200 rounded-lg hover:border-amber-300 transition-colors peer-checked:bg-amber-50 peer-checked:border-amber-500">
+                <span class="mt-0.5 inline-flex items-center justify-center w-6 h-6 rounded-full bg-amber-100 text-amber-600 flex-shrink-0">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                </span>
+                <div class="flex-1">
+                  <div class="flex items-center gap-2">
+                    <span class="text-sm font-medium text-gray-900">Prune Nearby Trees</span>
+                    <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-700">Bridge</span>
+                    <span class="text-xs text-gray-400 ml-auto">Modifier: x0.5</span>
+                  </div>
+                  <p class="text-xs text-gray-500 mt-1">Prune trees within the flagged zone to reduce fire fuel load. Reduces required distance by 50%.</p>
+                  <p class="text-xs text-gray-400 mt-1">If stacked with Film: 90 x 0.8 x 0.5 = <span class="font-semibold text-green-600">36 ft</span> &mdash; 50 ft &ge; 36 ft = <span class="font-semibold text-green-600">Passes</span></p>
+                </div>
+              </div>
+            </label>
+
+            <!-- Stacking visualization -->
+            <div id="stackingViz" class="hidden mt-3 p-3 bg-blue-50 rounded-md border border-blue-200">
+              <p class="text-xs font-semibold text-blue-700 mb-2">Stacked Bridge Effect</p>
+              <div class="text-sm font-mono text-gray-700 space-y-1" id="stackingCalc">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bridge Counter -->
+      <div id="bridgeBanner" class="hidden mt-6 p-4 bg-amber-50 border border-amber-200 rounded-lg flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <svg class="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          <span class="text-sm text-amber-800" id="bridgeBannerText"></span>
+        </div>
+      </div>
+
+      <!-- Submit -->
+      <div class="mt-8 flex items-center justify-between pb-8">
+        <a href="evaluation-form.html" class="text-sm text-brand-600 hover:text-brand-700 font-medium flex items-center gap-1">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+          Back to Form
+        </a>
+        <button onclick="alert('Mitigation selections submitted successfully!')" class="px-6 py-2.5 text-sm font-medium text-white bg-brand-600 rounded-lg hover:bg-brand-700 shadow-sm transition-colors flex items-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+          Submit Mitigation Selections
+        </button>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+const BRIDGE_LIMIT = 3;
+
+function toggleMitigation(id) {
+  const section = document.getElementById(id + '-mitigations');
+  const chevron = document.getElementById(id + '-chevron');
+  section.classList.toggle('open');
+  chevron.style.transform = section.classList.contains('open') ? 'rotate(180deg)' : '';
+}
+
+function updateBridgeCount() {
+  const bridgeChecks = document.querySelectorAll('.bridge-check:checked');
+  const count = bridgeChecks.length;
+  document.getElementById('bridgeCount').textContent = count;
+
+  const banner = document.getElementById('bridgeBanner');
+  const bannerText = document.getElementById('bridgeBannerText');
+
+  if (count > 0) {
+    banner.classList.remove('hidden');
+    const remaining = BRIDGE_LIMIT - count;
+    if (remaining > 0) {
+      bannerText.textContent = `${count} of ${BRIDGE_LIMIT} bridge mitigations selected. ${remaining} remaining.`;
+      banner.classList.remove('border-red-300', 'bg-red-50');
+      banner.classList.add('border-amber-200', 'bg-amber-50');
+    } else {
+      bannerText.textContent = `Bridge mitigation limit reached (${BRIDGE_LIMIT}/${BRIDGE_LIMIT}). No additional bridge mitigations can be selected.`;
+      banner.classList.remove('border-amber-200', 'bg-amber-50');
+      banner.classList.add('border-red-300', 'bg-red-50');
+      // Disable unchecked bridge checkboxes
+      document.querySelectorAll('.bridge-check:not(:checked)').forEach(cb => cb.disabled = true);
+    }
+  } else {
+    banner.classList.add('hidden');
+    document.querySelectorAll('.bridge-check').forEach(cb => cb.disabled = false);
+  }
+
+  // Re-enable if under limit
+  if (count < BRIDGE_LIMIT) {
+    document.querySelectorAll('.bridge-check').forEach(cb => cb.disabled = false);
+  }
+}
+
+// Auto-expand window mitigations for demo
+setTimeout(() => toggleMitigation('window'), 500);
+</script>
+</body>
+</html>

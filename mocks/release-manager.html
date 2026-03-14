@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Release Manager - Mitigation Rules Engine</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        brand: { 50: '#eff6ff', 100: '#dbeafe', 200: '#bfdbfe', 500: '#3b82f6', 600: '#2563eb', 700: '#1d4ed8', 800: '#1e40af', 900: '#1e3a5f' }
+      }
+    }
+  }
+}
+</script>
+<style>
+  body { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+  .sidebar-link { transition: background-color 0.15s, color 0.15s; }
+  .sidebar-link:hover { background-color: rgba(255,255,255,0.1); }
+  .sidebar-link.active { background-color: rgba(255,255,255,0.15); border-left: 3px solid #60a5fa; }
+  .release-card { transition: box-shadow 0.2s; }
+  .release-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+  .release-detail { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; }
+  .release-detail.open { max-height: 800px; }
+  .modal-overlay { transition: opacity 0.2s; }
+  .modal-content { transition: transform 0.2s, opacity 0.2s; }
+</style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+<div class="flex min-h-screen">
+
+  <!-- Sidebar -->
+  <aside class="w-64 bg-brand-900 text-white flex flex-col flex-shrink-0">
+    <div class="p-5 border-b border-white/10">
+      <h1 class="text-lg font-bold tracking-tight">Mitigation Rules</h1>
+      <p class="text-xs text-blue-200 mt-0.5">Wildfire Underwriting Engine</p>
+    </div>
+    <nav class="flex-1 py-4 px-3 space-y-1">
+      <p class="px-3 py-1.5 text-xs font-semibold text-blue-300 uppercase tracking-wider">Rule Management</p>
+      <a href="#" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-md text-sm text-blue-100">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+        All Rules
+      </a>
+      <a href="rule-editor.html" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-md text-sm text-blue-100">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+        Rule Editor
+      </a>
+      <a href="#" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-md text-sm text-blue-100">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+        Test Sandbox
+      </a>
+      <a href="release-manager.html" class="sidebar-link active flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
+        Releases
+      </a>
+    </nav>
+    <div class="p-4 border-t border-white/10">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center text-sm font-medium">AS</div>
+        <div>
+          <p class="text-sm font-medium">Alex Smith</p>
+          <p class="text-xs text-blue-200">Applied Science</p>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="flex-1 overflow-auto">
+    <header class="bg-white border-b border-gray-200 px-8 py-4 flex items-center justify-between">
+      <div>
+        <h2 class="text-xl font-semibold text-gray-900">Release Manager</h2>
+        <p class="text-sm text-gray-500 mt-0.5">Publish and manage rule releases</p>
+      </div>
+      <button onclick="openModal()" class="px-5 py-2.5 text-sm font-medium text-white bg-brand-600 rounded-lg hover:bg-brand-700 shadow-sm transition-colors flex items-center gap-2">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
+        Publish New Release
+      </button>
+    </header>
+
+    <div class="max-w-4xl mx-auto px-8 py-8">
+
+      <!-- Summary -->
+      <div class="grid grid-cols-3 gap-4 mb-8">
+        <div class="bg-white rounded-lg border border-gray-200 p-4 text-center">
+          <p class="text-2xl font-bold text-gray-900">5</p>
+          <p class="text-xs text-gray-500 mt-1">Total Releases</p>
+        </div>
+        <div class="bg-white rounded-lg border border-green-200 p-4 text-center">
+          <p class="text-2xl font-bold text-green-600">1</p>
+          <p class="text-xs text-gray-500 mt-1">Active Release</p>
+        </div>
+        <div class="bg-white rounded-lg border border-gray-200 p-4 text-center">
+          <p class="text-2xl font-bold text-gray-900">4</p>
+          <p class="text-xs text-gray-500 mt-1">Rules in Draft</p>
+        </div>
+      </div>
+
+      <!-- Release List -->
+      <div class="space-y-3">
+
+        <!-- Release 1: Active -->
+        <div class="release-card bg-white rounded-lg border-2 border-green-200 shadow-sm overflow-hidden">
+          <button onclick="toggleRelease('rel1')" class="w-full px-5 py-4 flex items-center justify-between text-left">
+            <div class="flex items-center gap-3">
+              <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-green-100 text-green-600">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              </span>
+              <div>
+                <h3 class="font-semibold text-gray-900">2026-Q1-v2.0</h3>
+                <p class="text-xs text-gray-500">Published Mar 1, 2026 by Alex Smith</p>
+              </div>
+              <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">Active</span>
+            </div>
+            <div class="flex items-center gap-3">
+              <span class="text-sm text-gray-500">4 rules</span>
+              <svg id="rel1-chevron" class="w-5 h-5 text-gray-400 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </div>
+          </button>
+          <div id="rel1-detail" class="release-detail border-t border-gray-100">
+            <div class="px-5 py-4">
+              <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Rules in this release</p>
+              <div class="space-y-2">
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-md">
+                  <div class="flex items-center gap-2">
+                    <span class="text-sm font-medium text-gray-900">Attic Vent Screens</span>
+                    <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs bg-blue-50 text-blue-700">Simple</span>
+                  </div>
+                  <span class="text-xs text-gray-400">1 mitigation</span>
+                </div>
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-md">
+                  <div class="flex items-center gap-2">
+                    <span class="text-sm font-medium text-gray-900">Roof Type</span>
+                    <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs bg-purple-50 text-purple-700">Conditional</span>
+                  </div>
+                  <span class="text-xs text-gray-400">1 mitigation</span>
+                </div>
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-md">
+                  <div class="flex items-center gap-2">
+                    <span class="text-sm font-medium text-gray-900">Window Safety Distance</span>
+                    <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs bg-amber-50 text-amber-700">Computed</span>
+                  </div>
+                  <span class="text-xs text-gray-400">3 mitigations</span>
+                </div>
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-md">
+                  <div class="flex items-center gap-2">
+                    <span class="text-sm font-medium text-gray-900">Home-to-Home Distance</span>
+                    <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs bg-blue-50 text-blue-700">Simple</span>
+                    <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs bg-red-50 text-red-700">Unmitigatable</span>
+                  </div>
+                  <span class="text-xs text-gray-400">0 mitigations</span>
+                </div>
+              </div>
+              <div class="mt-4 pt-3 border-t border-gray-200 flex items-center justify-between">
+                <p class="text-xs text-green-600 font-medium">This is the currently active release used for new evaluations.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Release 2: Published -->
+        <div class="release-card bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+          <button onclick="toggleRelease('rel2')" class="w-full px-5 py-4 flex items-center justify-between text-left">
+            <div class="flex items-center gap-3">
+              <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-600">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
+              </span>
+              <div>
+                <h3 class="font-semibold text-gray-900">2026-Q1-v1.1</h3>
+                <p class="text-xs text-gray-500">Published Feb 15, 2026 by Alex Smith</p>
+              </div>
+              <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-700">Published</span>
+            </div>
+            <div class="flex items-center gap-3">
+              <span class="text-sm text-gray-500">4 rules</span>
+              <svg id="rel2-chevron" class="w-5 h-5 text-gray-400 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </div>
+          </button>
+          <div id="rel2-detail" class="release-detail border-t border-gray-100">
+            <div class="px-5 py-4">
+              <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Rules in this release</p>
+              <div class="space-y-2">
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-md">
+                  <span class="text-sm font-medium text-gray-900">Attic Vent Screens</span>
+                  <span class="text-xs text-gray-400">Simple</span>
+                </div>
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-md">
+                  <span class="text-sm font-medium text-gray-900">Roof Type</span>
+                  <span class="text-xs text-gray-400">Conditional</span>
+                </div>
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-md">
+                  <span class="text-sm font-medium text-gray-900">Window Safety Distance</span>
+                  <span class="text-xs text-gray-400">Computed</span>
+                </div>
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-md">
+                  <span class="text-sm font-medium text-gray-900">Home-to-Home Distance</span>
+                  <span class="text-xs text-gray-400">Simple</span>
+                </div>
+              </div>
+              <div class="mt-4 pt-3 border-t border-gray-200 flex items-center justify-end">
+                <button onclick="alert('Release 2026-Q1-v1.1 has been activated. It is now the default for new evaluations.')" class="px-4 py-2 text-sm font-medium text-brand-700 bg-brand-50 border border-brand-200 rounded-lg hover:bg-brand-100 transition-colors">
+                  Activate This Release
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Release 3: Published (older) -->
+        <div class="release-card bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+          <button onclick="toggleRelease('rel3')" class="w-full px-5 py-4 flex items-center justify-between text-left">
+            <div class="flex items-center gap-3">
+              <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-600">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
+              </span>
+              <div>
+                <h3 class="font-semibold text-gray-900">2026-Q1-v1.0</h3>
+                <p class="text-xs text-gray-500">Published Jan 20, 2026 by Alex Smith</p>
+              </div>
+              <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-700">Published</span>
+            </div>
+            <div class="flex items-center gap-3">
+              <span class="text-sm text-gray-500">3 rules</span>
+              <svg id="rel3-chevron" class="w-5 h-5 text-gray-400 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </div>
+          </button>
+          <div id="rel3-detail" class="release-detail border-t border-gray-100">
+            <div class="px-5 py-4">
+              <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Rules in this release</p>
+              <div class="space-y-2">
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-md">
+                  <span class="text-sm font-medium text-gray-900">Attic Vent Screens</span>
+                  <span class="text-xs text-gray-400">Simple</span>
+                </div>
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-md">
+                  <span class="text-sm font-medium text-gray-900">Roof Type</span>
+                  <span class="text-xs text-gray-400">Conditional</span>
+                </div>
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-md">
+                  <span class="text-sm font-medium text-gray-900">Home-to-Home Distance</span>
+                  <span class="text-xs text-gray-400">Simple</span>
+                </div>
+              </div>
+              <div class="mt-4 pt-3 border-t border-gray-200 flex items-center justify-end">
+                <button onclick="alert('Release 2026-Q1-v1.0 has been activated.')" class="px-4 py-2 text-sm font-medium text-brand-700 bg-brand-50 border border-brand-200 rounded-lg hover:bg-brand-100 transition-colors">
+                  Activate This Release
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Release 4: Published (oldest) -->
+        <div class="release-card bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+          <button onclick="toggleRelease('rel4')" class="w-full px-5 py-4 flex items-center justify-between text-left">
+            <div class="flex items-center gap-3">
+              <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 text-gray-500">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
+              </span>
+              <div>
+                <h3 class="font-semibold text-gray-900">2025-Q4-v1.0</h3>
+                <p class="text-xs text-gray-500">Published Dec 1, 2025 by Alex Smith</p>
+              </div>
+              <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-700">Published</span>
+            </div>
+            <div class="flex items-center gap-3">
+              <span class="text-sm text-gray-500">2 rules</span>
+              <svg id="rel4-chevron" class="w-5 h-5 text-gray-400 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </div>
+          </button>
+          <div id="rel4-detail" class="release-detail border-t border-gray-100">
+            <div class="px-5 py-4">
+              <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Rules in this release</p>
+              <div class="space-y-2">
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-md">
+                  <span class="text-sm font-medium text-gray-900">Attic Vent Screens</span>
+                  <span class="text-xs text-gray-400">Simple</span>
+                </div>
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-md">
+                  <span class="text-sm font-medium text-gray-900">Roof Type</span>
+                  <span class="text-xs text-gray-400">Conditional</span>
+                </div>
+              </div>
+              <div class="mt-4 pt-3 border-t border-gray-200 flex items-center justify-end">
+                <button onclick="alert('Release 2025-Q4-v1.0 has been activated.')" class="px-4 py-2 text-sm font-medium text-brand-700 bg-brand-50 border border-brand-200 rounded-lg hover:bg-brand-100 transition-colors">
+                  Activate This Release
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Release 5: Draft -->
+        <div class="release-card bg-white rounded-lg border border-dashed border-gray-300 shadow-sm overflow-hidden">
+          <div class="px-5 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 text-gray-400">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+              </span>
+              <div>
+                <h3 class="font-semibold text-gray-500">Draft Workspace</h3>
+                <p class="text-xs text-gray-400">4 rules currently in draft (not yet published)</p>
+              </div>
+              <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-500">Draft</span>
+            </div>
+            <span class="text-sm text-gray-400">4 rules</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Publish Modal -->
+<div id="publishModal" class="hidden fixed inset-0 z-50 flex items-center justify-center">
+  <div class="modal-overlay absolute inset-0 bg-black/40" onclick="closeModal()"></div>
+  <div class="modal-content relative bg-white rounded-xl shadow-2xl w-full max-w-md mx-4 p-6">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="text-lg font-semibold text-gray-900">Publish New Release</h3>
+      <button onclick="closeModal()" class="p-1.5 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <p class="text-sm text-gray-500 mb-4">This will create an immutable snapshot of all 4 current draft rules. The snapshot cannot be modified after publishing.</p>
+    <div class="mb-4">
+      <label class="block text-sm font-medium text-gray-700 mb-1">Release Name <span class="text-red-500">*</span></label>
+      <input type="text" id="releaseName" value="2026-Q1-v2.1" class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500" placeholder="e.g., 2026-Q2-v1.0">
+      <p class="text-xs text-gray-400 mt-1">Use a descriptive version name (e.g., 2026-Q2-v3.1)</p>
+    </div>
+    <div class="mb-6 p-3 bg-gray-50 rounded-md border border-gray-200">
+      <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Rules to be snapshotted</p>
+      <ul class="text-sm text-gray-700 space-y-1">
+        <li class="flex items-center gap-2">
+          <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+          Attic Vent Screens
+        </li>
+        <li class="flex items-center gap-2">
+          <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+          Roof Type
+        </li>
+        <li class="flex items-center gap-2">
+          <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+          Window Safety Distance
+        </li>
+        <li class="flex items-center gap-2">
+          <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+          Home-to-Home Distance
+        </li>
+      </ul>
+    </div>
+    <div class="flex gap-3 justify-end">
+      <button onclick="closeModal()" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">Cancel</button>
+      <button onclick="publishRelease()" class="px-5 py-2 text-sm font-medium text-white bg-brand-600 rounded-lg hover:bg-brand-700 shadow-sm">Publish Release</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function toggleRelease(id) {
+  const detail = document.getElementById(id + '-detail');
+  const chevron = document.getElementById(id + '-chevron');
+  detail.classList.toggle('open');
+  chevron.style.transform = detail.classList.contains('open') ? 'rotate(180deg)' : '';
+}
+
+function openModal() {
+  document.getElementById('publishModal').classList.remove('hidden');
+}
+
+function closeModal() {
+  document.getElementById('publishModal').classList.add('hidden');
+}
+
+function publishRelease() {
+  const name = document.getElementById('releaseName').value;
+  if (!name) { alert('Please enter a release name.'); return; }
+  alert(`Release "${name}" published successfully! You can now activate it to make it the default for new evaluations.`);
+  closeModal();
+}
+
+// Expand the active release by default
+setTimeout(() => toggleRelease('rel1'), 300);
+</script>
+</body>
+</html>

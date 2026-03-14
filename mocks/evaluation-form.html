@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Property Evaluation - Mitigation Rules Engine</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        brand: { 50: '#eff6ff', 100: '#dbeafe', 200: '#bfdbfe', 500: '#3b82f6', 600: '#2563eb', 700: '#1d4ed8', 800: '#1e40af', 900: '#1e3a5f' }
+      }
+    }
+  }
+}
+</script>
+<style>
+  body { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+  .sidebar-link { transition: background-color 0.15s, color 0.15s; }
+  .sidebar-link:hover { background-color: rgba(255,255,255,0.1); }
+  .sidebar-link.active { background-color: rgba(255,255,255,0.15); border-left: 3px solid #60a5fa; }
+  .form-section { animation: fadeIn 0.2s ease-out; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+  .veg-item { animation: slideIn 0.2s ease-out; }
+  @keyframes slideIn { from { opacity: 0; transform: translateX(-8px); } to { opacity: 1; transform: translateX(0); } }
+</style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+
+<!-- Layout -->
+<div class="flex min-h-screen">
+
+  <!-- Sidebar -->
+  <aside class="w-64 bg-brand-900 text-white flex flex-col flex-shrink-0">
+    <div class="p-5 border-b border-white/10">
+      <h1 class="text-lg font-bold tracking-tight">Mitigation Rules</h1>
+      <p class="text-xs text-blue-200 mt-0.5">Wildfire Underwriting Engine</p>
+    </div>
+    <nav class="flex-1 py-4 px-3 space-y-1">
+      <a href="evaluation-form.html" class="sidebar-link active flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        New Evaluation
+      </a>
+      <a href="evaluation-results.html" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-md text-sm text-blue-100">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        Results
+      </a>
+      <a href="rule-reference.html" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-md text-sm text-blue-100">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+        Rule Reference
+      </a>
+    </nav>
+    <div class="p-4 border-t border-white/10">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-sm font-medium">JD</div>
+        <div>
+          <p class="text-sm font-medium">Jane Doe</p>
+          <p class="text-xs text-blue-200">Underwriter</p>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="flex-1 overflow-auto">
+    <!-- Top bar -->
+    <header class="bg-white border-b border-gray-200 px-8 py-4 flex items-center justify-between">
+      <div>
+        <h2 class="text-xl font-semibold text-gray-900">Property Evaluation</h2>
+        <p class="text-sm text-gray-500 mt-0.5">Enter property observations to evaluate against underwriting rules</p>
+      </div>
+      <div class="flex items-center gap-3">
+        <span class="text-xs text-gray-400">Active Release:</span>
+        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200">2026-Q1-v2.0</span>
+      </div>
+    </header>
+
+    <div class="max-w-4xl mx-auto px-8 py-8">
+      <form id="evaluationForm" onsubmit="handleSubmit(event)">
+
+        <!-- State Selector -->
+        <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-6 mb-6 form-section">
+          <div class="flex items-center gap-2 mb-4">
+            <svg class="w-5 h-5 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            <h3 class="text-base font-semibold text-gray-900">State</h3>
+            <span class="text-red-500 text-sm">*</span>
+          </div>
+          <select id="state" required class="w-full sm:w-64 rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500">
+            <option value="">Select state...</option>
+            <option value="CA">California</option>
+            <option value="CO">Colorado</option>
+            <option value="OR">Oregon</option>
+            <option value="MT">Montana</option>
+            <option value="WA">Washington</option>
+          </select>
+        </div>
+
+        <!-- Property Info -->
+        <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-6 mb-6 form-section">
+          <div class="flex items-center gap-2 mb-4">
+            <svg class="w-5 h-5 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0h4"/></svg>
+            <h3 class="text-base font-semibold text-gray-900">Property Information</h3>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">
+                Wildfire Risk Category <span class="text-red-500">*</span>
+              </label>
+              <select required class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500">
+                <option value="">Select...</option>
+                <option value="A">A - Low</option>
+                <option value="B">B - Moderate</option>
+                <option value="C" selected>C - High</option>
+                <option value="D">D - Very High</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">
+                Home-to-Home Distance (ft) <span class="text-red-500">*</span>
+              </label>
+              <input type="number" step="0.1" min="0" required value="18" class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500" placeholder="e.g., 25.0">
+              <p class="text-xs text-gray-400 mt-1">Minimum edge-to-edge between building footprints</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Roof & Structure -->
+        <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-6 mb-6 form-section">
+          <div class="flex items-center gap-2 mb-4">
+            <svg class="w-5 h-5 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+            <h3 class="text-base font-semibold text-gray-900">Roof & Structure</h3>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">
+                Roof Type <span class="text-red-500">*</span>
+              </label>
+              <select required class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500">
+                <option value="">Select...</option>
+                <option value="Class A">Class A (Fire Resistant)</option>
+                <option value="Class B" selected>Class B (Moderate)</option>
+                <option value="Class C">Class C (Light)</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">
+                Attic Vent Screens <span class="text-red-500">*</span>
+              </label>
+              <select required class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500">
+                <option value="">Select...</option>
+                <option value="None">None</option>
+                <option value="Standard" selected>Standard</option>
+                <option value="Ember Resistant">Ember Resistant</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Windows & Openings -->
+        <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-6 mb-6 form-section">
+          <div class="flex items-center gap-2 mb-4">
+            <svg class="w-5 h-5 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zm0 8a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zm12 0a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"/></svg>
+            <h3 class="text-base font-semibold text-gray-900">Windows & Openings</h3>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">
+                Window Type <span class="text-red-500">*</span>
+              </label>
+              <select required class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500">
+                <option value="">Select...</option>
+                <option value="Single Pane" selected>Single Pane</option>
+                <option value="Double Pane">Double Pane</option>
+                <option value="Tempered Glass">Tempered Glass</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Vegetation (Dynamic Array) -->
+        <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-6 mb-6 form-section">
+          <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-2">
+              <svg class="w-5 h-5 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg>
+              <h3 class="text-base font-semibold text-gray-900">Vegetation</h3>
+              <span class="text-xs text-gray-400 ml-1">(surrounding property)</span>
+            </div>
+            <button type="button" onclick="addVegetation()" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-brand-700 bg-brand-50 border border-brand-200 rounded-md hover:bg-brand-100 transition-colors">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
+              Add Vegetation
+            </button>
+          </div>
+          <div id="vegetationList" class="space-y-3">
+            <!-- Vegetation Item 1 -->
+            <div class="veg-item flex items-start gap-3 p-4 bg-gray-50 rounded-lg border border-gray-100">
+              <div class="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Type <span class="text-red-500">*</span></label>
+                  <select required class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500">
+                    <option value="">Select...</option>
+                    <option value="Tree" selected>Tree</option>
+                    <option value="Shrub">Shrub</option>
+                    <option value="Grass">Grass</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Distance to Window (ft) <span class="text-red-500">*</span></label>
+                  <input type="number" step="0.1" min="0" required value="50" class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500" placeholder="e.g., 30">
+                </div>
+              </div>
+              <button type="button" onclick="removeVegetation(this)" class="mt-6 p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+              </button>
+            </div>
+            <!-- Vegetation Item 2 -->
+            <div class="veg-item flex items-start gap-3 p-4 bg-gray-50 rounded-lg border border-gray-100">
+              <div class="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Type <span class="text-red-500">*</span></label>
+                  <select required class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500">
+                    <option value="">Select...</option>
+                    <option value="Tree">Tree</option>
+                    <option value="Shrub" selected>Shrub</option>
+                    <option value="Grass">Grass</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Distance to Window (ft) <span class="text-red-500">*</span></label>
+                  <input type="number" step="0.1" min="0" required value="20" class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500" placeholder="e.g., 30">
+                </div>
+              </div>
+              <button type="button" onclick="removeVegetation(this)" class="mt-6 p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+              </button>
+            </div>
+          </div>
+          <p id="vegEmpty" class="hidden text-sm text-gray-400 text-center py-6">No vegetation items added. Click "Add Vegetation" to begin.</p>
+        </div>
+
+        <!-- Proximity -->
+        <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-6 mb-8 form-section">
+          <div class="flex items-center gap-2 mb-4">
+            <svg class="w-5 h-5 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+            <h3 class="text-base font-semibold text-gray-900">Proximity & Additional</h3>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">
+                Defensible Space Maintained
+              </label>
+              <select class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500">
+                <option value="">Select...</option>
+                <option value="yes">Yes</option>
+                <option value="no" selected>No</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">
+                Fire Station Distance (miles)
+              </label>
+              <input type="number" step="0.1" min="0" value="4.2" class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500" placeholder="e.g., 5.0">
+            </div>
+          </div>
+        </div>
+
+        <!-- Submit -->
+        <div class="flex items-center justify-between pb-8">
+          <p class="text-xs text-gray-400"><span class="text-red-500">*</span> Required fields</p>
+          <div class="flex gap-3">
+            <button type="button" class="px-5 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+              Clear Form
+            </button>
+            <button type="submit" class="px-6 py-2.5 text-sm font-medium text-white bg-brand-600 rounded-lg hover:bg-brand-700 shadow-sm transition-colors flex items-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              Evaluate Property
+            </button>
+          </div>
+        </div>
+
+      </form>
+    </div>
+  </main>
+</div>
+
+<script>
+function addVegetation() {
+  const list = document.getElementById('vegetationList');
+  document.getElementById('vegEmpty').classList.add('hidden');
+  const item = document.createElement('div');
+  item.className = 'veg-item flex items-start gap-3 p-4 bg-gray-50 rounded-lg border border-gray-100';
+  item.innerHTML = `
+    <div class="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Type <span class="text-red-500">*</span></label>
+        <select required class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500">
+          <option value="">Select...</option>
+          <option value="Tree">Tree</option>
+          <option value="Shrub">Shrub</option>
+          <option value="Grass">Grass</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Distance to Window (ft) <span class="text-red-500">*</span></label>
+        <input type="number" step="0.1" min="0" required class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500" placeholder="e.g., 30">
+      </div>
+    </div>
+    <button type="button" onclick="removeVegetation(this)" class="mt-6 p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded transition-colors">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+    </button>
+  `;
+  list.appendChild(item);
+}
+
+function removeVegetation(btn) {
+  const item = btn.closest('.veg-item');
+  item.style.opacity = '0';
+  item.style.transform = 'translateX(-8px)';
+  item.style.transition = 'opacity 0.15s, transform 0.15s';
+  setTimeout(() => {
+    item.remove();
+    const list = document.getElementById('vegetationList');
+    if (list.children.length === 0) {
+      document.getElementById('vegEmpty').classList.remove('hidden');
+    }
+  }, 150);
+}
+
+function handleSubmit(e) {
+  e.preventDefault();
+  window.location.href = 'evaluation-results.html';
+}
+</script>
+</body>
+</html>
