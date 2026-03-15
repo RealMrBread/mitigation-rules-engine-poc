@@ -9,14 +9,7 @@ import { LoginPage } from '@/pages/login';
 import { NotFoundPage } from '@/pages/not-found';
 import { ProtectedRoute } from '@/components/protected-route';
 import { EvaluationFormPage } from '@/pages/evaluation/form';
-
-function EvaluationResultsPlaceholder() {
-  return (
-    <div className="flex items-center justify-center py-24">
-      <p className="text-lg text-gray-500">Results coming soon</p>
-    </div>
-  );
-}
+import { EvaluationResultsPage } from '@/pages/evaluation/results';
 
 const routes: RouteObject[] = [
   {
@@ -43,7 +36,7 @@ const routes: RouteObject[] = [
           },
           {
             path: 'evaluation/:id/results',
-            element: <EvaluationResultsPlaceholder />,
+            element: <EvaluationResultsPage />,
           },
         ],
       },
