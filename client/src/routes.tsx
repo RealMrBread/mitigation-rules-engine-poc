@@ -8,14 +8,7 @@ import { AuthLayout } from '@/components/auth-layout';
 import { LoginPage } from '@/pages/login';
 import { NotFoundPage } from '@/pages/not-found';
 import { ProtectedRoute } from '@/components/protected-route';
-
-function EvaluationNewPlaceholder() {
-  return (
-    <div className="flex items-center justify-center py-24">
-      <p className="text-lg text-gray-500">Evaluation Form coming soon</p>
-    </div>
-  );
-}
+import { EvaluationFormPage } from '@/pages/evaluation/form';
 
 function EvaluationResultsPlaceholder() {
   return (
@@ -46,7 +39,7 @@ const routes: RouteObject[] = [
           },
           {
             path: 'evaluation/new',
-            element: <EvaluationNewPlaceholder />,
+            element: <EvaluationFormPage />,
           },
           {
             path: 'evaluation/:id/results',
