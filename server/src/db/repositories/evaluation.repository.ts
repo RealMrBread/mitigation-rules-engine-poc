@@ -59,6 +59,12 @@ export class EvaluationRepository {
     });
   }
 
+  async list(): Promise<Evaluation[]> {
+    return this.db.evaluation.findMany({
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
   async listByProperty(propertyId: string): Promise<Evaluation[]> {
     return this.db.evaluation.findMany({
       where: { propertyId },
