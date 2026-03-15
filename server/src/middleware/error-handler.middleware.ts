@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { ZodError } from 'zod';
-import { JsonWebTokenError, TokenExpiredError } from 'jsonwebtoken';
+import jwt from 'jsonwebtoken';
+const { JsonWebTokenError, TokenExpiredError } = jwt;
 import { ConflictError } from '../db/errors.js';
 import { AppError } from '../lib/errors.js';
 import type { ApiError } from '@shared/types/api.js';
