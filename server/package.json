@@ -8,12 +8,18 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run"
   },
+  "prisma": {
+    "seed": "npx tsx prisma/seed.ts"
+  },
   "dependencies": {
     "@mre/shared": "*",
     "@prisma/client": "^5.22.0",
+    "bcryptjs": "^3.0.3",
     "prisma": "^5.22.0"
   },
   "devDependencies": {
+    "@types/bcryptjs": "^3.0.0",
+    "tsx": "^4.21.0",
     "typescript": "^5.4.0",
     "vitest": "^2.0.0"
   }
