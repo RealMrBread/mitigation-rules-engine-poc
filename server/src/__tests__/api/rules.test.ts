@@ -277,9 +277,9 @@ describe('Release Routes — /api/releases', () => {
     expect(res.status).toBe(201);
     expect(res.body.data).toMatchObject({
       name: 'v1.0',
-      isActive: false,
+      is_active: false,
     });
-    expect(res.body.data.releaseRules).toHaveLength(1);
+    expect(res.body.data.release_rules).toHaveLength(1);
   });
 
   it('10 - PUT /api/releases/:id/activate activates release', async () => {
@@ -300,7 +300,7 @@ describe('Release Routes — /api/releases', () => {
       .set('Authorization', `Bearer ${token}`);
 
     expect(res.status).toBe(200);
-    expect(res.body.data.isActive).toBe(true);
+    expect(res.body.data.is_active).toBe(true);
   });
 
   it('11 - GET /api/releases/active/rules returns rules from active release', async () => {

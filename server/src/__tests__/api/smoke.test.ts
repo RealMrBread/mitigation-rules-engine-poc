@@ -240,7 +240,7 @@ describe('End-to-end smoke test', () => {
       .set('Authorization', `Bearer ${sciToken}`);
 
     expect(activateRes.status).toBe(200);
-    expect(activateRes.body.data.isActive).toBe(true);
+    expect(activateRes.body.data.is_active).toBe(true);
 
     // ── Step 9: Login as admin ──────────────────────────────────────────
     const adminLoginRes = await request(app)
