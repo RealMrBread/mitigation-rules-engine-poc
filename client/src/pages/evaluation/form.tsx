@@ -303,7 +303,7 @@ export function EvaluationFormPage() {
     reset,
     formState: { errors },
   } = useForm<ObservationFormValues>({
-    resolver: zodResolver(observationFormSchema),
+    resolver: zodResolver(observationFormSchema) as any,
     defaultValues: {
       property_id: '',
       state: '',

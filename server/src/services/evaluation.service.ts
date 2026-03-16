@@ -133,11 +133,14 @@ export async function listEvaluations(propertyId?: string) {
 
 /**
  * Get a single evaluation by id.
+ * Returns the stored EvaluationResult (same shape as POST /evaluate).
  */
-export async function getEvaluationById(id: string) {
+export async function getEvaluationById(id: string): Promise<EvaluationResult> {
   const evaluation = await evaluationRepository.findById(id);
   if (!evaluation) {
     throw new NotFoundError(`Evaluation ${id} not found`);
   }
-  return evaluation;
+  const result = evaluation.result as unknown as EvaluationResult;
+  result.evaluation_id = evaluation.id;
+  return result;
 }
