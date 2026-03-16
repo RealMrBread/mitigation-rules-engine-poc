@@ -6,6 +6,7 @@ import { RuleFormSimple } from '@/components/rules/rule-form-simple';
 import { RuleFormConditional } from '@/components/rules/rule-form-conditional';
 import { RuleFormComputed } from '@/components/rules/rule-form-computed';
 import { MitigationEditor } from '@/components/rules/mitigation-editor';
+import { JsonEditor } from '@/components/rules/json-editor';
 import type { RuleType, SimpleConfig, ConditionalConfig, ComputedConfig, Mitigation } from '@shared/types/rule.js';
 
 // ---------------------------------------------------------------------------
@@ -41,6 +42,17 @@ const DEFAULT_CONFIGS: Record<RuleType, RuleConfig> = {
     comparisonOperator: 'gte',
   } as ComputedConfig,
 };
+
+function formToRuleObject(form: RuleFormState, id?: string): object {
+  return {
+    ...(id ? { id } : {}),
+    name: form.name,
+    description: form.description,
+    type: form.type,
+    config: form.config,
+    mitigations: form.mitigations,
+  };
+}
 
 function defaultFormState(): RuleFormState {
   return {
@@ -375,13 +387,20 @@ export function RuleEditorPage() {
         </>
       )}
 
-      {/* JSON View — placeholder for 6.3 */}
+      {/* JSON View */}
       {viewMode === 'json' && (
-        <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6 mb-6">
-          <div className="text-center py-12 text-sm text-gray-500">
-            JSON Editor — coming in iteration 6.3
-          </div>
-        </div>
+        <JsonEditor
+          value={formToRuleObject(form, isNew ? undefined : id)}
+          onChange={(parsed) => {
+            const obj = parsed as any;
+            if (obj.name) setForm((prev) => ({ ...prev, name: obj.name }));
+            if (obj.description) setForm((prev) => ({ ...prev, description: obj.description }));
+            if (obj.type && obj.config) {
+              setForm((prev) => ({ ...prev, type: obj.type, config: obj.config }));
+            }
+            if (obj.mitigations) setForm((prev) => ({ ...prev, mitigations: obj.mitigations }));
+          }}
+        />
       )}
 
       {/* Actions */}
