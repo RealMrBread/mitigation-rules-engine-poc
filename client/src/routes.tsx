@@ -14,6 +14,8 @@ import { EvaluationHistoryPage } from '@/pages/evaluation/history';
 import { EvaluationDetailPage } from '@/pages/evaluation/detail';
 import { RuleListPage } from '@/pages/rules/list';
 import { RuleEditorPage } from '@/pages/rules/editor';
+import { TestSandboxPage } from '@/pages/rules/test-sandbox';
+import { ReleaseManagerPage } from '@/pages/releases/manager';
 
 const routes: RouteObject[] = [
   {
@@ -61,6 +63,14 @@ const routes: RouteObject[] = [
           {
             path: 'rules/:id',
             element: <RuleEditorPage />,
+          },
+          {
+            path: 'rules/test',
+            element: <TestSandboxPage />,
+          },
+          {
+            path: 'releases',
+            element: <ReleaseManagerPage />,
           },
         ],
       },
