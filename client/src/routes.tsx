@@ -12,6 +12,7 @@ import { EvaluationFormPage } from '@/pages/evaluation/form';
 import { EvaluationResultsPage } from '@/pages/evaluation/results';
 import { EvaluationHistoryPage } from '@/pages/evaluation/history';
 import { EvaluationDetailPage } from '@/pages/evaluation/detail';
+import { RuleListPage } from '@/pages/rules/list';
 
 const routes: RouteObject[] = [
   {
@@ -47,6 +48,10 @@ const routes: RouteObject[] = [
           {
             path: 'evaluations/:id',
             element: <EvaluationDetailPage />,
+          },
+          {
+            path: 'rules',
+            element: <RuleListPage />,
           },
         ],
       },
