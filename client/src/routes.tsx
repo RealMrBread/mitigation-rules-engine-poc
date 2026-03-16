@@ -13,6 +13,7 @@ import { EvaluationResultsPage } from '@/pages/evaluation/results';
 import { EvaluationHistoryPage } from '@/pages/evaluation/history';
 import { EvaluationDetailPage } from '@/pages/evaluation/detail';
 import { RuleListPage } from '@/pages/rules/list';
+import { RuleEditorPage } from '@/pages/rules/editor';
 
 const routes: RouteObject[] = [
   {
@@ -52,6 +53,14 @@ const routes: RouteObject[] = [
           {
             path: 'rules',
             element: <RuleListPage />,
+          },
+          {
+            path: 'rules/new',
+            element: <RuleEditorPage />,
+          },
+          {
+            path: 'rules/:id',
+            element: <RuleEditorPage />,
           },
         ],
       },
