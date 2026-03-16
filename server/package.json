@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@mre/shared": "*",
+    "zod": "^4.3.6",
     "@prisma/client": "^5.22.0",
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.6",

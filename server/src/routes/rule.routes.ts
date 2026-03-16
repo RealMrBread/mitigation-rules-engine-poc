@@ -15,7 +15,9 @@ import type { ApiResponse } from '@shared/types/api.js';
 // Request body schemas (server-side, no id — server generates it)
 // ---------------------------------------------------------------------------
 
-const CreateRuleBodySchema = z.discriminatedUnion('type', [
+// Using z.union instead of z.discriminatedUnion to avoid Zod v4 bug with
+// nested discriminated unions (BridgeEffectSchema) inside union options.
+const CreateRuleBodySchema = z.union([
   z.object({
     type: z.literal('simple_threshold'),
     name: z.string().min(1),

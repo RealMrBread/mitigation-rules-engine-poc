@@ -4,7 +4,6 @@ import { useEvaluation } from '@/hooks/useEvaluation';
 import { useSelectMitigations } from '@/hooks/useMitigations';
 import { AutoDeclineBanner } from '@/components/evaluation/auto-decline-banner';
 import { VulnerabilityCard } from '@/components/evaluation/vulnerability-card';
-import type { EvaluationResult } from '@shared/types/evaluation.js';
 import type { SelectMitigationsRequest } from '@shared/types/api.js';
 
 // ---------------------------------------------------------------------------
@@ -284,9 +283,7 @@ export function EvaluationResultsPage() {
     );
   }
 
-  // Cast to the shared type (the hook's type is broader)
-  const eval_ = evaluation as unknown as EvaluationResult;
-  const { summary, vulnerabilities, auto_declined } = eval_;
+  const { summary, vulnerabilities, auto_declined } = evaluation;
 
   // Sort: unmitigatable first, then mitigatable
   const sortedVulnerabilities = [...vulnerabilities.filter((v) => v.triggered)].sort(
@@ -321,17 +318,17 @@ export function EvaluationResultsPage() {
           <h2 className="text-xl font-semibold text-gray-900">
             Evaluation Results
           </h2>
-          {eval_.release && (
+          {evaluation.release && (
             <p className="text-sm text-gray-500 mt-0.5">
               Evaluation #{id?.slice(0, 8)}
             </p>
           )}
         </div>
-        {eval_.release && (
+        {evaluation.release && (
           <div className="flex items-center gap-3">
             <span className="text-xs text-gray-400">Evaluated against:</span>
             <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200">
-              {eval_.release.name}
+              {evaluation.release.name}
             </span>
           </div>
         )}

@@ -186,10 +186,9 @@ describe('End-to-end smoke test', () => {
       .set('Authorization', `Bearer ${uwToken}`);
 
     expect(getEvalRes.status).toBe(200);
-    expect(getEvalRes.body.data.id).toBe(evaluationId);
-    expect(getEvalRes.body.data).toHaveProperty('observations');
-    expect(getEvalRes.body.data).toHaveProperty('result');
-    expect(getEvalRes.body.data.mitigations.length).toBe(1);
+    expect(getEvalRes.body.data.evaluation_id).toBe(evaluationId);
+    expect(getEvalRes.body.data).toHaveProperty('vulnerabilities');
+    expect(getEvalRes.body.data).toHaveProperty('summary');
 
     // ── Step 5: Login as applied_science ────────────────────────────────
     const sciLoginRes = await request(app)
@@ -214,7 +213,7 @@ describe('End-to-end smoke test', () => {
         },
         mitigations: [
           {
-            id: 'c0000000-0000-4000-c000-000000000001',
+            id: 'c0000000-0000-4000-a000-000000000001',
             name: 'Replace Roof',
             description: 'Full roof replacement',
             category: 'full',

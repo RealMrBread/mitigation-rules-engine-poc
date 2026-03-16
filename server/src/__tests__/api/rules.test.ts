@@ -242,15 +242,16 @@ describe('Rule CRUD — /api/rules', () => {
       .send({
         observations: {
           property_id: 'PROP-001',
+          state: 'CA',
           year_built: 1990,
-          roof_age: 25,
+          roof_age: 10,
         },
       });
 
     expect(res.status).toBe(200);
     expect(res.body.data).toHaveProperty('evaluation_id');
     expect(res.body.data).toHaveProperty('vulnerabilities');
-    // Rule should trigger since roof_age (25) >= 20
+    // Rule should trigger since roof_age (10) < 20 (fails the gte 20 passing condition)
     expect(res.body.data.vulnerabilities.length).toBeGreaterThanOrEqual(1);
     expect(res.body.data.vulnerabilities[0].triggered).toBe(true);
   });

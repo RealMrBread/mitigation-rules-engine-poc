@@ -351,9 +351,9 @@ describe('GET /api/evaluations/:id', () => {
       .set(authHeader());
 
     expect(res.status).toBe(200);
-    expect(res.body.data.id).toBe(evalId);
-    expect(res.body.data).toHaveProperty('observations');
-    expect(res.body.data).toHaveProperty('result');
+    expect(res.body.data.evaluation_id).toBe(evalId);
+    expect(res.body.data).toHaveProperty('vulnerabilities');
+    expect(res.body.data).toHaveProperty('summary');
   });
 
   it('12 - unknown id returns 404', async () => {

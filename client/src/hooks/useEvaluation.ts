@@ -2,19 +2,9 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api';
 import { queryClient } from '@/lib/query-client';
 import type { EvaluateRequest } from '@shared/types/api.js';
+import type { EvaluationResult } from '@shared/types/evaluation.js';
 
-// --------------------------------------------------------------------------
-// Types for evaluation responses
-// --------------------------------------------------------------------------
-
-export interface EvaluationResult {
-  evaluation_id: string;
-  state: string;
-  property_id: string;
-  vulnerabilities: unknown[];
-  auto_declined: boolean;
-  created_at: string;
-}
+export type { EvaluationResult };
 
 export interface EvaluationListItem {
   evaluation_id: string;
