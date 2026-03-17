@@ -23,15 +23,10 @@ export interface RuleSnapshot {
   mitigations: RuleSnapshotMitigation[];
 }
 
-export interface ActiveReleaseRulesResponse {
-  release_name: string;
-  rules: RuleSnapshot[];
-}
-
 export function useActiveReleaseRules() {
   return useQuery({
     queryKey: ['releases', 'active', 'rules'],
-    queryFn: () => apiClient.get<ActiveReleaseRulesResponse>('/releases/active/rules'),
+    queryFn: () => apiClient.get<RuleSnapshot[]>('/releases/active/rules'),
     staleTime: 60 * 1000,
   });
 }
