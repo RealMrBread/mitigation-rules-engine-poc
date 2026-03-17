@@ -16,6 +16,10 @@ import { RuleListPage } from '@/pages/rules/list';
 import { RuleEditorPage } from '@/pages/rules/editor';
 import { TestSandboxPage } from '@/pages/rules/test-sandbox';
 import { ReleaseManagerPage } from '@/pages/releases/manager';
+import { RuleReferencePage } from '@/pages/rule-reference';
+import { AdminSettingsPage } from '@/pages/admin/settings';
+import { AdminUsersPage } from '@/pages/admin/users';
+import { AuditLogPage } from '@/pages/admin/audit-log';
 
 const routes: RouteObject[] = [
   {
@@ -53,6 +57,10 @@ const routes: RouteObject[] = [
             element: <EvaluationDetailPage />,
           },
           {
+            path: 'rule-reference',
+            element: <RuleReferencePage />,
+          },
+          {
             path: 'rules',
             element: <RuleListPage />,
           },
@@ -71,6 +79,18 @@ const routes: RouteObject[] = [
           {
             path: 'releases',
             element: <ReleaseManagerPage />,
+          },
+          {
+            path: 'settings',
+            element: <AdminSettingsPage />,
+          },
+          {
+            path: 'users',
+            element: <AdminUsersPage />,
+          },
+          {
+            path: 'audit-log',
+            element: <AuditLogPage />,
           },
         ],
       },

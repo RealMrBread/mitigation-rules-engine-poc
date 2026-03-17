@@ -20,6 +20,11 @@ const navItems: NavItem[] = [
     roles: ['underwriter', 'admin'],
   },
   {
+    label: 'Rule Reference',
+    path: '/rule-reference',
+    roles: ['underwriter', 'applied_science', 'admin'],
+  },
+  {
     label: 'Rules',
     path: '/rules',
     roles: ['applied_science', 'admin'],
@@ -37,6 +42,11 @@ const navItems: NavItem[] = [
   {
     label: 'Users',
     path: '/users',
+    roles: ['admin'],
+  },
+  {
+    label: 'Audit Log',
+    path: '/audit-log',
     roles: ['admin'],
   },
 ];
