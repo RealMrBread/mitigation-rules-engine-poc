@@ -244,9 +244,9 @@ export function RuleReferencePage() {
   const [typeFilter, setTypeFilter] = useState('');
 
   const rules = useMemo(() => {
-    if (!data?.rules) return [];
+    if (!data) return [];
     const term = search.toLowerCase();
-    return data.rules.filter((rule) => {
+    return data.filter((rule) => {
       const matchesSearch =
         !term ||
         rule.name.toLowerCase().includes(term) ||
@@ -254,10 +254,9 @@ export function RuleReferencePage() {
       const matchesType = !typeFilter || rule.type === typeFilter;
       return matchesSearch && matchesType;
     });
-  }, [data?.rules, search, typeFilter]);
+  }, [data, search, typeFilter]);
 
-  const totalCount = data?.rules?.length ?? 0;
-  const releaseName = data?.release_name;
+  const totalCount = data?.length ?? 0;
 
   return (
     <div>
@@ -268,11 +267,10 @@ export function RuleReferencePage() {
             Browse all rules from the active release (read-only)
           </p>
         </div>
-        {releaseName && (
+        {totalCount > 0 && (
           <div className="flex items-center gap-3">
-            <span className="text-xs text-gray-400">Active Release:</span>
             <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-200">
-              {releaseName} (Active)
+              Active Release
             </span>
           </div>
         )}
