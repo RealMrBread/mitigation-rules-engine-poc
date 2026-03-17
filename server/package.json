@@ -6,7 +6,8 @@
   "scripts": {
     "build": "tsc",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "seed:demo": "npx tsx prisma/seed-demo.ts"
   },
   "prisma": {
     "seed": "npx tsx prisma/seed.ts"
