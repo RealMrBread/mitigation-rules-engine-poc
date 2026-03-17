@@ -1,5 +1,6 @@
 import { settingsRepository } from '../db/repositories/settings.repository.js';
 import { userRepository } from '../db/repositories/user.repository.js';
+import { auditLogRepository } from '../db/repositories/audit-log.repository.js';
 import * as authService from './auth.service.js';
 import type { User } from '@shared/types/user.js';
 
@@ -16,10 +17,12 @@ export async function getSettings(): Promise<Record<string, unknown>> {
  */
 export async function updateSettings(
   data: Record<string, unknown>,
+  userId: string,
 ): Promise<Record<string, unknown>> {
   for (const [key, value] of Object.entries(data)) {
     await settingsRepository.set(key, value);
   }
+  await auditLogRepository.append('settings.updated', 'settings', null, userId, { changes: data });
   return settingsRepository.getAll();
 }
 
@@ -38,6 +41,9 @@ export async function createUser(
   email: string,
   password: string,
   role: string,
+  userId: string,
 ): Promise<User> {
-  return authService.register(email, password, role);
+  const newUser = await authService.register(email, password, role);
+  await auditLogRepository.append('user.created', 'user', newUser.id, userId, { email, role });
+  return newUser;
 }
